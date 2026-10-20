@@ -258,8 +258,32 @@ code,kbd{
   display:grid;place-items:center;text-decoration:none;font-size:20px;
 }
 
+
+/* ---------- ページのタブ ---------- */
+.tabs{
+  position:sticky;top:0;z-index:20;
+  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+  padding:10px 12px 0;
+  background:rgba(18,23,49,.94);
+  border-bottom:1px solid rgba(214,179,92,.4);
+}
+.tabs a{
+  padding:8px 18px;
+  font-family:var(--font-head);font-weight:600;font-size:15px;
+  color:#d9d2bd;text-decoration:none;
+  border:1px solid rgba(214,179,92,.35);border-bottom:0;
+  border-radius:6px 6px 0 0;
+  background:rgba(27,33,66,.7);
+}
+.tabs a:hover{color:var(--star);background:rgba(214,179,92,.12)}
+.tabs a[aria-current="page"]{background:var(--vellum);color:var(--ink);border-color:var(--gold)}
+.tabs .new{font-family:var(--font-latin);font-size:11px;color:#c9a2ff;margin-left:6px;letter-spacing:.08em}
+.log{top:64px;max-height:calc(100vh - 84px)}
+
 /* ---------- スマホ ---------- */
 @media (max-width:900px){
+  .tabs{position:relative}
+  .tabs a{padding:7px 12px;font-size:14px}
   .book{grid-template-columns:1fr;gap:0;padding:0 12px 60px}
   .log{position:sticky;top:0;z-index:5;max-height:none;border-radius:0 0 6px 6px;padding:10px 12px;margin:0 -12px 20px;border-left:0;border-right:0;border-top:0}
   .log h2{display:none}
@@ -276,6 +300,12 @@ code,kbd{
 </style>
 </head>
 <body>
+
+<!-- ========== ページのタブ ========== -->
+<nav class="tabs" aria-label="ページ">
+  <a href="index.html" aria-current="page">📖 冒険者の手引き書</a>
+  <a href="shokkai.html">🌑 蝕界 アップデート<span class="new">NEW</span></a>
+</nav>
 
 <!-- ========== 表紙 ========== -->
 <header class="cover" id="top">
