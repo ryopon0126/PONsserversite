@@ -1,0 +1,726 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>蝕界アップデート | PONSWORLD</title>
+<meta name="description" content="PONSWORLD の新コンテンツ「蝕界」の遊び方と素材の集め方。">
+<meta property="og:title" content="蝕界アップデート | PONSWORLD">
+<meta property="og:description" content="新コンテンツ「蝕界」の遊び方をまとめました。">
+<meta property="og:type" content="website">
+<meta name="theme-color" content="#1c1330">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Cinzel:wght@600&family=Shippori+Mincho+B1:wght@600;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --night:#1b2142;      /* 夜空の藍：背景 */
+  --night-deep:#121731; /* 夜空の奥 */
+  --vellum:#efe2c2;     /* 羊皮紙：本文の紙 */
+  --vellum-edge:#d8c49a;
+  --ink:#2b2216;        /* 墨：紙の上の文字 */
+  --ink-soft:#5c4c35;
+  --gold:#d6b35c;       /* 金箔：見出し・飾り */
+  --gold-deep:#a8822f;
+  --crimson:#9c2f3a;    /* 紅：注意 */
+  --arcane:#2f8f86;     /* 秘術の碧：魔法・リンク */
+  --star:#f6edd2;
+  --radius-page:6px;
+  --font-title:"Cinzel Decorative","Shippori Mincho B1",serif;
+  --font-head:"Shippori Mincho B1",serif;
+  --font-latin:"Cinzel","Shippori Mincho B1",serif;
+  --font-body:"Zen Kaku Gothic New",system-ui,sans-serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;scroll-padding-top:72px}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  font-size:16px;
+  line-height:1.8;
+  color:var(--star);
+  background:
+    radial-gradient(1px 1px at 12% 18%,rgba(246,237,210,.8) 50%,transparent 51%),
+    radial-gradient(1px 1px at 72% 9%,rgba(246,237,210,.6) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 38% 42%,rgba(246,237,210,.5) 50%,transparent 51%),
+    radial-gradient(1px 1px at 88% 61%,rgba(246,237,210,.6) 50%,transparent 51%),
+    radial-gradient(1px 1px at 22% 77%,rgba(246,237,210,.5) 50%,transparent 51%),
+    radial-gradient(1.5px 1.5px at 64% 88%,rgba(246,237,210,.4) 50%,transparent 51%),
+    linear-gradient(180deg,var(--night-deep) 0%,var(--night) 40%,var(--night-deep) 100%);
+  background-attachment:fixed;
+}
+a{color:var(--arcane)}
+a:focus-visible,button:focus-visible,summary:focus-visible{outline:3px solid var(--gold);outline-offset:3px;border-radius:3px}
+img{max-width:100%;display:block}
+
+/* ---------- 表紙 ---------- */
+.cover{
+  min-height:88vh;
+  display:grid;
+  place-items:center;
+  text-align:center;
+  padding:64px 20px 48px;
+  position:relative;
+  overflow:hidden;
+}
+.cover::before{ /* 魔法陣 */
+  content:"";
+  position:absolute;
+  width:min(720px,140vw);aspect-ratio:1;
+  left:50%;top:50%;transform:translate(-50%,-50%);
+  border-radius:50%;
+  border:1px solid rgba(214,179,92,.25);
+  box-shadow:inset 0 0 0 18px rgba(214,179,92,.04),inset 0 0 0 19px rgba(214,179,92,.22),inset 0 0 0 64px rgba(214,179,92,.03),inset 0 0 0 65px rgba(214,179,92,.15);
+  animation:turn 120s linear infinite;
+}
+@keyframes turn{to{transform:translate(-50%,-50%) rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){.cover::before{animation:none}}
+.cover-inner{position:relative;max-width:640px}
+.crest{
+  width:92px;height:92px;margin:0 auto 18px;
+  border:2px solid var(--gold);
+  transform:rotate(45deg);
+  display:grid;place-items:center;
+  background:rgba(18,23,49,.7);
+}
+.crest span{transform:rotate(-45deg);font-family:var(--font-latin);color:var(--gold);font-size:30px}
+.cover .kicker{font-family:var(--font-latin);letter-spacing:.3em;color:var(--gold);font-size:14px;margin:0 0 6px}
+.cover h1{
+  font-family:var(--font-head);
+  font-weight:800;
+  font-size:clamp(40px,8vw,76px);
+  line-height:1.15;
+  margin:0;
+  color:var(--star);
+  text-shadow:0 0 24px rgba(214,179,92,.35);
+}
+.cover .world{
+  font-family:var(--font-title);
+  font-size:clamp(22px,4.2vw,34px);
+  color:var(--gold);
+  margin:10px 0 22px;
+}
+.cover .lead{font-size:17px;color:#d9d2bd;margin:0 auto 30px;max-width:30em}
+.cover .open{
+  display:inline-block;
+  font-family:var(--font-head);
+  font-weight:600;
+  font-size:18px;
+  color:var(--night-deep);
+  background:linear-gradient(180deg,#e8c879,var(--gold-deep));
+  padding:12px 30px;
+  border-radius:3px;
+  text-decoration:none;
+  box-shadow:0 0 0 1px #f3dc98 inset,0 6px 18px rgba(0,0,0,.4);
+}
+.cover .open:hover{filter:brightness(1.08)}
+.cover .ver{margin-top:22px;font-size:13px;color:#a9a28c}
+
+/* ---------- 本の構成 ---------- */
+.book{
+  display:grid;
+  grid-template-columns:260px minmax(0,1fr);
+  gap:36px;
+  max-width:1180px;
+  margin:0 auto;
+  padding:0 20px 80px;
+}
+/* 目次（クエストログ） */
+.log{
+  position:sticky;top:20px;align-self:start;
+  max-height:calc(100vh - 40px);overflow:auto;
+  background:rgba(18,23,49,.86);
+  border:1px solid rgba(214,179,92,.35);
+  border-radius:var(--radius-page);
+  padding:18px 16px;
+}
+.log h2{font-family:var(--font-head);font-size:18px;color:var(--gold);margin:0 0 10px;text-align:center}
+.log ol{list-style:none;margin:0;padding:0}
+.log li a{
+  display:flex;gap:10px;align-items:baseline;
+  padding:7px 8px;border-radius:3px;
+  color:#d9d2bd;text-decoration:none;font-size:14.5px;line-height:1.5;
+}
+.log li a .no{font-family:var(--font-head);color:var(--gold-deep);min-width:3.2em;font-size:13px}
+.log li a:hover{background:rgba(214,179,92,.1);color:var(--star)}
+.log li a.on{background:rgba(214,179,92,.16);color:var(--star)}
+.log li a.on .no{color:var(--gold)}
+.logtoggle{display:none}
+
+/* 章（羊皮紙のページ） */
+.chapter{
+  background:linear-gradient(180deg,var(--vellum),#e8d8b2);
+  color:var(--ink);
+  border-radius:var(--radius-page);
+  padding:44px clamp(20px,5vw,56px) 40px;
+  margin:0 0 40px;
+  position:relative;
+  box-shadow:0 0 0 1px var(--vellum-edge) inset,0 0 0 6px rgba(43,34,22,.06) inset,0 18px 40px rgba(0,0,0,.45);
+}
+.chapter::before,.chapter::after{ /* 角の金具 */
+  content:"";position:absolute;width:26px;height:26px;
+  border:2px solid var(--gold-deep);
+}
+.chapter::before{top:10px;left:10px;border-right:0;border-bottom:0}
+.chapter::after{bottom:10px;right:10px;border-left:0;border-top:0}
+.ch-no{font-family:var(--font-head);color:var(--gold-deep);font-size:15px;margin:0 0 2px;letter-spacing:.1em}
+.chapter > h2{
+  font-family:var(--font-head);font-weight:800;
+  font-size:clamp(26px,4vw,36px);line-height:1.3;
+  margin:0 0 6px;color:var(--ink);
+}
+.ch-lead{color:var(--ink-soft);margin:0 0 26px;max-width:40em}
+.ornament{height:14px;margin:0 0 26px;background:
+  linear-gradient(90deg,transparent,var(--gold-deep) 20%,var(--gold-deep) 80%,transparent) center/100% 1px no-repeat;
+  position:relative}
+.ornament::after{content:"◆";position:absolute;left:50%;top:50%;transform:translate(-50%,-52%);font-size:12px;color:var(--gold-deep);background:#ecdcb8;padding:0 8px}
+
+.entry{margin:0 0 34px}
+.entry:last-child{margin-bottom:0}
+.entry h3{
+  font-family:var(--font-head);font-weight:800;
+  font-size:22px;margin:0 0 8px;color:var(--ink);
+  display:flex;gap:10px;align-items:center;
+}
+.entry h3 .ic{font-size:22px}
+.entry p{margin:0 0 12px;max-width:42em}
+.entry ul{margin:0 0 12px;padding-left:1.3em;max-width:42em}
+.entry li{margin:0 0 4px}
+.entry h4{font-family:var(--font-head);font-size:17px;margin:18px 0 6px;color:var(--ink)}
+
+/* 表 */
+.tbl{width:100%;border-collapse:collapse;margin:8px 0 14px;font-size:15px;background:rgba(255,250,236,.55)}
+.tbl th,.tbl td{border:1px solid #cdb889;padding:8px 10px;text-align:left;vertical-align:top}
+.tbl th{background:#3a3020;color:var(--vellum);font-family:var(--font-head);font-weight:600}
+.tbl td:first-child{white-space:nowrap}
+.scroll-x{overflow-x:auto}
+
+/* 豆知識・注意 */
+.note{
+  border-left:4px solid var(--arcane);
+  background:rgba(47,143,134,.1);
+  padding:10px 14px;margin:12px 0;border-radius:0 4px 4px 0;
+  max-width:44em;
+}
+.note.warn{border-color:var(--crimson);background:rgba(156,47,58,.08)}
+.note b{font-family:var(--font-head)}
+
+/* コマンド */
+code,kbd{
+  font-family:"Zen Kaku Gothic New",ui-monospace,monospace;
+  background:#3a3020;color:#f3e6c3;
+  padding:1px 7px;border-radius:3px;font-size:.92em;white-space:nowrap;
+}
+
+/* 宝箱のランク */
+.tier{display:inline-block;padding:0 8px;border-radius:3px;font-weight:700;font-size:14px;color:#fff}
+.t-common{background:#8a5a2b}.t-exq{background:#2f78b8}.t-pre{background:#7b3fa6}.t-lux{background:#b8901f}
+
+/* 画像の枠 */
+.shot{margin:14px 0 18px;max-width:640px}
+.shot img{border-radius:4px;border:3px solid #3a3020;box-shadow:0 6px 16px rgba(43,34,22,.25)}
+.shot figcaption{font-size:13.5px;color:var(--ink-soft);margin-top:6px}
+.shot.missing img{display:none}
+.shot.missing::before{
+  content:"🖼 " attr(data-file);
+  display:grid;place-items:center;
+  aspect-ratio:16/9;
+  border:2px dashed #b49a65;border-radius:4px;
+  color:#8a7550;font-size:14px;background:rgba(255,250,236,.4);
+  text-align:center;padding:10px;
+}
+
+/* 冒険の道しるべ（本当に順番があるので番号を使う） */
+.path{counter-reset:step;list-style:none;padding:0;margin:0;max-width:44em}
+.path li{
+  counter-increment:step;
+  position:relative;padding:4px 0 18px 56px;
+}
+.path li::before{
+  content:counter(step);
+  position:absolute;left:0;top:0;
+  width:40px;height:40px;display:grid;place-items:center;
+  font-family:var(--font-latin);font-size:18px;color:var(--vellum);
+  background:#3a3020;border:2px solid var(--gold-deep);transform:rotate(45deg);
+}
+.path li::after{content:"";position:absolute;left:19px;top:44px;bottom:0;width:2px;background:var(--gold-deep);opacity:.5}
+.path li:last-child::after{display:none}
+.path li b{font-family:var(--font-head);font-size:17px}
+
+/* 終わり */
+.colophon{text-align:center;color:#a9a28c;font-size:14px;padding:10px 20px 40px}
+.colophon .world{font-family:var(--font-title);color:var(--gold);font-size:20px;margin-bottom:4px}
+.totop{
+  position:fixed;right:18px;bottom:18px;
+  width:46px;height:46px;border-radius:50%;
+  background:rgba(18,23,49,.9);border:1px solid var(--gold);color:var(--gold);
+  display:grid;place-items:center;text-decoration:none;font-size:20px;
+}
+
+
+/* ---------- ページのタブ ---------- */
+.tabs{
+  position:sticky;top:0;z-index:20;
+  display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+  padding:10px 12px 0;
+  background:rgba(18,23,49,.94);
+  border-bottom:1px solid rgba(214,179,92,.4);
+}
+.tabs a{
+  padding:8px 18px;
+  font-family:var(--font-head);font-weight:600;font-size:15px;
+  color:#d9d2bd;text-decoration:none;
+  border:1px solid rgba(214,179,92,.35);border-bottom:0;
+  border-radius:6px 6px 0 0;
+  background:rgba(27,33,66,.7);
+}
+.tabs a:hover{color:var(--star);background:rgba(214,179,92,.12)}
+.tabs a[aria-current="page"]{background:var(--vellum);color:var(--ink);border-color:var(--gold)}
+.tabs .new{font-family:var(--font-latin);font-size:11px;color:#c9a2ff;margin-left:6px;letter-spacing:.08em}
+.log{top:64px;max-height:calc(100vh - 84px)}
+
+/* ---------- スマホ ---------- */
+@media (max-width:900px){
+  .tabs{position:relative}
+  .tabs a{padding:7px 12px;font-size:14px}
+  .book{grid-template-columns:1fr;gap:0;padding:0 12px 60px}
+  .log{position:sticky;top:0;z-index:5;max-height:none;border-radius:0 0 6px 6px;padding:10px 12px;margin:0 -12px 20px;border-left:0;border-right:0;border-top:0}
+  .log h2{display:none}
+  .logtoggle{
+    display:flex;width:100%;justify-content:space-between;align-items:center;
+    background:none;border:0;color:var(--gold);font-family:var(--font-head);font-size:16px;padding:4px 2px;cursor:pointer;
+  }
+  .log ol{display:none;margin-top:6px;max-height:60vh;overflow:auto}
+  .log.open ol{display:block}
+  .chapter{padding:36px 18px 30px}
+  .tbl{font-size:14px}
+  .tbl td:first-child{white-space:normal}
+}
+
+/* ---------- 蝕界ページだけの色 ---------- */
+body.shk{
+  --night:#1c1330;
+  --night-deep:#0f0a1d;
+  --rift:#9b6bd6;      /* 蝕の紫 */
+  --rift-soft:rgba(155,107,214,.14);
+}
+body.shk .cover::before{border-color:rgba(155,107,214,.35);box-shadow:inset 0 0 0 18px rgba(155,107,214,.05),inset 0 0 0 19px rgba(155,107,214,.25),inset 0 0 0 64px rgba(155,107,214,.04),inset 0 0 0 65px rgba(155,107,214,.18)}
+body.shk .cover h1{text-shadow:0 0 28px rgba(155,107,214,.55)}
+body.shk .crest{border-color:var(--rift)}
+body.shk .crest span{color:#d9c2ff}
+.note.rift{border-color:var(--rift);background:var(--rift-soft)}
+.seal{display:inline-block;padding:0 8px;border-radius:3px;font-weight:700;font-size:14px;color:#fff}
+.s1{background:#8d8a83}.s2{background:#3f8fb3}.s3{background:#6b3fa0}.s4{background:#b8741f}
+.stars{color:var(--gold-deep);letter-spacing:.05em}
+</style>
+</head>
+<body class="shk">
+
+<!-- ========== ページのタブ ========== -->
+<nav class="tabs" aria-label="ページ">
+  <a href="index.html">📖 冒険者の手引き書</a>
+  <a href="shokkai.html" aria-current="page">🌑 蝕界 アップデート<span class="new">NEW</span></a>
+</nav>
+
+<!-- ========== 表紙 ========== -->
+<header class="cover" id="top">
+  <div class="cover-inner">
+    <div class="crest" aria-hidden="true"><span>蝕</span></div>
+    <p class="kicker">New Update</p>
+    <h1>蝕界</h1>
+    <p class="world">SHOKKAI</p>
+    <p class="lead">世界の裏側に、灯りの届かない場所がある。<br>灯火を絶やさず、正体の分からない宝を持ち帰れ。</p>
+    <a class="open" href="#about">アップデートを読む</a>
+    <p class="ver">UPDATE「蝕界」</p>
+  </div>
+</header>
+
+<div class="book">
+
+<!-- ========== 目次 ========== -->
+<nav class="log" id="log" aria-label="目次">
+  <button class="logtoggle" id="logtoggle" aria-expanded="false" aria-controls="loglist">📜 目次 <span aria-hidden="true">▾</span></button>
+  <h2>目次</h2>
+  <ol id="loglist">
+    <li><a href="#about"><span class="no">序章</span>蝕界とは</a></li>
+    <li><a href="#gate"><span class="no">第一章</span>ゲートと蝕界結晶</a></li>
+    <li><a href="#lamp"><span class="no">第二章</span>灯火と侵食</a></li>
+    <li><a href="#light"><span class="no">第三章</span>灯りを守る道具</a></li>
+    <li><a href="#unid"><span class="no">第四章</span>未鑑定品と持ち帰り枠</a></li>
+    <li><a href="#appraise"><span class="no">第五章</span>鑑定と蝕界の装備</a></li>
+    <li><a href="#material"><span class="no">第六章</span>蝕界の素材</a></li>
+    <li><a href="#base"><span class="no">第七章</span>拠点と蝕界</a></li>
+    <li><a href="#rule"><span class="no">巻末</span>蝕界の決まりごと</a></li>
+  </ol>
+</nav>
+
+<main>
+
+<!-- ========== 序章 ========== -->
+<section class="chapter" id="about">
+  <p class="ch-no">序章</p>
+  <h2>蝕界とは</h2>
+  <p class="ch-lead">闇に蝕まれた、もうひとつの世界。そこにしかない素材と、強い装備の眠る場所。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">🌑</span>もうひとつの世界</h3>
+    <p>蝕界は、いつもの世界とは別のワールドです。灰が舞い、どこからか不気味な音が聞こえる、闇に蝕まれた土地が広がっています。中にいるあいだは、画面の上に「蝕界」のバーが出ます。</p>
+    <p>時間の制限はありません。素材を集めに来るのも、強い装備を求めて奥へ進むのも自由です。ただし、<b>灯火</b>が消えないように気をつけて。</p>
+    <figure class="shot" data-file="images/shokkai/world.png"><img src="images/shokkai/world.png" alt="蝕界の景色と、画面上の蝕界のバー" loading="lazy"><figcaption>蝕界の景色</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">🧭</span>蝕界でできること</h3>
+    <ul>
+      <li>蝕界だけのモンスターを倒して、<b>未鑑定品</b>を手に入れる</li>
+      <li>未鑑定品を拠点で<b>鑑定</b>して、蝕界の装備にする</li>
+      <li>木を切り、鉱石を掘って、<b>蝕界の素材</b>を集める</li>
+      <li>集めた素材で、拠点の新しい施設や料理を作る</li>
+    </ul>
+    <p>戦うのが好きな人も、拠点の暮らしが好きな人も、それぞれの楽しみ方ができます。</p>
+  </article>
+</section>
+
+<!-- ========== 第一章 ========== -->
+<section class="chapter" id="gate">
+  <p class="ch-no">第一章</p>
+  <h2>ゲートと蝕界結晶</h2>
+  <p class="ch-lead">蝕界への道は、結晶ひとつで開く。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">🌀</span>蝕界に入る</h3>
+    <p>入口のゲートに近づくと、<b>蝕界結晶を1個</b>使って蝕界に入ります。結晶を持っていないと、ゲートは開きません。</p>
+    <p>入ると灯火は満タンから始まります。入った場所は覚えていて、帰るときはそこに戻ります。</p>
+    <figure class="shot" data-file="images/shokkai/gate.png"><img src="images/shokkai/gate.png" alt="蝕界の入口のゲート" loading="lazy"><figcaption>蝕界の入口のゲート</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">💎</span>蝕界結晶の手に入れ方</h3>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>手に入れ方</th><th>くわしく</th></tr>
+      <tr><td>🧳 蝕界の行商</td><td>蝕界鉄鋼×16 と交換（×5 は蝕界鉄鋼×80）</td></tr>
+      <tr><td>🌱 結晶の苗床</td><td>拠点で、蝕晶から育てる（第七章）</td></tr>
+      <tr><td>⚔ 強い敵</td><td>蝕界の中の、とくに強い敵がまれに落とす</td></tr>
+    </table></div>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">🚪</span>蝕界から帰る</h3>
+    <p>出口のゲートに近づくと、「<b>蝕界から帰りますか？</b>」の画面が出ます。「帰る」を押すと、持っている未鑑定品や素材ごと、元の場所に戻れます。帰るのにお金はかかりません。</p>
+    <p>画面が出ないときは、<code>/shkgate yes</code> で帰れます。</p>
+    <figure class="shot" data-file="images/shokkai/exit_dialog.png"><img src="images/shokkai/exit_dialog.png" alt="蝕界から帰りますか？の画面" loading="lazy"><figcaption>帰るときの確認画面</figcaption></figure>
+    <div class="note">ログアウトしても、蝕界から追い出されることはありません。次にログインすると、蝕界の中から再開します。</div>
+  </article>
+</section>
+
+<!-- ========== 第二章 ========== -->
+<section class="chapter" id="lamp">
+  <p class="ch-no">第二章</p>
+  <h2>灯火と侵食</h2>
+  <p class="ch-lead">灯りが消えるとき、闇があなたを外へ押し出す。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">🔥</span>灯火のゲージ</h3>
+    <p>蝕界の中では、画面の下に<b>灯火</b>と<b>侵食</b>が表示されます。灯火は時間とともに少しずつ減り、減ったぶんだけ侵食が進みます。</p>
+    <figure class="shot" data-file="images/shokkai/lamp_bar.png"><img src="images/shokkai/lamp_bar.png" alt="灯火と侵食のゲージ" loading="lazy"><figcaption>灯火・侵食・入口からの距離・持ち帰り枠</figcaption></figure>
+    <h4>灯火が早く減るとき</h4>
+    <ul>
+      <li>入口から遠くへ進んだとき</li>
+      <li>未鑑定品をたくさん持っているとき</li>
+      <li>近くに蝕界のモンスターがいるとき</li>
+      <li>蝕界のモンスターの攻撃を受けたとき（ときどき、まとめて削られる）</li>
+    </ul>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">⚠</span>灯火が消えると</h3>
+    <ul>
+      <li>灯火が少なくなるとゲージが赤くなり、さらに減ると視界が暗くなる</li>
+      <li>灯火が0になると、蝕界の外へ弾き出される。<b>持っていた未鑑定品はすべて消える</b></li>
+    </ul>
+    <div class="note warn"><b>倒れたとき</b>：外には出されず、蝕界の入口で目を覚まします（灯火は半分）。ただし、<b>持っていた未鑑定品は失います</b>。蝕界の中では、キープのお守りも効きません。</div>
+  </article>
+</section>
+
+<!-- ========== 第三章 ========== -->
+<section class="chapter" id="light">
+  <p class="ch-no">第三章</p>
+  <h2>灯りを守る道具</h2>
+  <p class="ch-lead">闇の中で頼れるのは、ランタンと焚き火の灯り。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">🏮</span>灯のランタン</h3>
+    <p><b>オフハンド</b>に持っていると、チャージが残っているあいだ、灯火が減らなくなります（少しずつ回復もします）。</p>
+    <ul>
+      <li>まわりにいる仲間も、同じように守られる（減るのは持ち主のチャージだけ）</li>
+      <li>チャージは最大10分。蝕界の中でオフハンドに持っているあいだだけ減る</li>
+      <li>モンスターの攻撃で削られるぶんは防げない</li>
+    </ul>
+    <figure class="shot" data-file="images/shokkai/lantern.png"><img src="images/shokkai/lantern.png" alt="灯のランタンをオフハンドに持ったところ" loading="lazy"><figcaption>ランタンを持つと、画面の下に残り時間が出る</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">⚡</span>灯の充填台</h3>
+    <p>ランタンを手に持って充填台を右クリックすると、<b>蝕核の欠片</b>を使ってチャージできます。欠片1個で30秒。満タンまでに必要な分だけ使います（しゃがんで右クリックなら1個ずつ）。</p>
+    <figure class="shot" data-file="images/shokkai/charger.png"><img src="images/shokkai/charger.png" alt="灯の充填台でチャージしているところ" loading="lazy"><figcaption>灯の充填台</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">🪵</span>朽ちた焚き火</h3>
+    <p>蝕界のあちこちに、火の消えた「朽ちた焚き火」があります。灯っている焚き火のそばにいると、灯火がどんどん回復します。</p>
+    <ol class="path">
+      <li><b>素材を納めて、復活させる</b><br>焚き火を右クリックすると、持っている素材から納品できます。必要な素材は、焚き火の上に表示されます。みんなで少しずつ納めてもOK。</li>
+      <li><b>10分間、灯る</b><br>復活すると、まわりで灯火が回復するようになります。回復できる範囲は、地面の炎の輪が目印です。</li>
+      <li><b>木材をくべて、また灯す</b><br>燃え尽きたら、木材（どの木でもOK）を手に持って右クリック。入れた数だけ長く灯ります。</li>
+    </ol>
+    <figure class="shot" data-file="images/shokkai/campfire.png"><img src="images/shokkai/campfire.png" alt="灯った焚き火と炎の輪" loading="lazy"><figcaption>灯った焚き火のまわりで回復</figcaption></figure>
+  </article>
+</section>
+
+<!-- ========== 第四章 ========== -->
+<section class="chapter" id="unid">
+  <p class="ch-no">第四章</p>
+  <h2>未鑑定品と持ち帰り枠</h2>
+  <p class="ch-lead">封の中身は、鑑定するまで誰にも分からない。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">📦</span>未鑑定品</h3>
+    <p>蝕界のモンスターを倒すと、ときどき<b>未鑑定品</b>が手に入ります。強い敵ほど、手に入りやすくなります。</p>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>未鑑定品</th><th>鑑定すると</th></tr>
+      <tr><td>歪んだ刃</td><td>剣 か 斧</td></tr>
+      <tr><td>砕けた兜片</td><td>ヘルメット</td></tr>
+      <tr><td>朽ちた鎧片</td><td>チェストプレート</td></tr>
+      <tr><td>錆びた脚甲</td><td>レギンス</td></tr>
+      <tr><td>擦り切れた靴底</td><td>ブーツ</td></tr>
+    </table></div>
+    <h4>封の色</h4>
+    <p>未鑑定品には封がされていて、色によって、鑑定したときに良いものが出やすいかが変わります。</p>
+    <p><span class="seal s1">褪せた封</span> <span class="seal s2">淡い封</span> <span class="seal s3">濃い封</span> <span class="seal s4">灼けた封</span></p>
+    <p>右にいくほど、珍しい封です。</p>
+    <figure class="shot" data-file="images/shokkai/drop.png"><img src="images/shokkai/drop.png" alt="未鑑定品を手に入れたときの光" loading="lazy"><figcaption>珍しい封ほど、手に入れたときの演出も派手に</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">🎒</span>持ち帰り枠</h3>
+    <p>未鑑定品は、<b>持ち帰り枠3つ</b>までしか持てません。</p>
+    <ul>
+      <li>1個につき1枠</li>
+      <li>同じ種類の2個目からは、1個につき<b>2枠</b>使う<br>（例: 刃・兜・鎧 → 3枠 ／ 刃・刃 → 3枠 ／ 刃・刃・刃 → 持てない）</li>
+      <li>枠がいっぱいのときに出た未鑑定品は、砕けて消えてしまう</li>
+    </ul>
+    <div class="note">どれを持ち帰るかは、あなた次第。たくさん持つほど灯火も早く減るので、引き際も大切です。</div>
+  </article>
+</section>
+
+<!-- ========== 第五章 ========== -->
+<section class="chapter" id="appraise">
+  <p class="ch-no">第五章</p>
+  <h2>鑑定と蝕界の装備</h2>
+  <p class="ch-lead">闇の中で、封がほどける。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">🔮</span>鑑定する</h3>
+    <p>持ち帰った未鑑定品は、拠点の施設「<b>蝕の鑑定台</b>」で鑑定します（1回 エメラルド200）。未鑑定品を手に持って鑑定台を右クリックし、「鑑定する」を選びます。</p>
+    <figure class="shot" data-file="images/shokkai/appraise.png"><img src="images/shokkai/appraise.png" alt="鑑定の演出" loading="lazy"><figcaption>鑑定の瞬間</figcaption></figure>
+    <div class="note">珍しい封がなかなか出ない人への、救済のしくみもあります。鑑定台の画面で確認できます。</div>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">⚔</span>蝕界の装備</h3>
+    <ul>
+      <li>レアリティは <span class="stars">★1〜★5</span>。★が多いほど強い</li>
+      <li>クオリティ（1〜100%）があり、高いほど強い</li>
+      <li>★5の装備には、<b>サブステータス</b>（追加の効果）が付く</li>
+      <li>壊れない。<b>エンチャントはできない</b>が、そのぶん素の強さがとても高い</li>
+      <li>戦闘力（<code>/power</code>）にも、蝕界の装備の点数が入る</li>
+    </ul>
+    <p>★5や、クオリティ100%が出たときは、サーバー全体にお知らせが流れます。お知らせにカーソルを合わせると、装備の詳しい中身が見られます。</p>
+    <figure class="shot" data-file="images/shokkai/gear.png"><img src="images/shokkai/gear.png" alt="蝕界の装備の説明文" loading="lazy"><figcaption>蝕界の装備</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">♻</span>サブステータスを鍛える</h3>
+    <p>蝕の鑑定台のレベルを上げると、★5の装備をさらに鍛えられるようになります。</p>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>鑑定台のLv</th><th>できること</th></tr>
+      <tr><td>Lv1</td><td>鑑定</td></tr>
+      <tr><td>Lv2</td><td>サブステータスの再抽選（スロットを1つ選んで振り直す）</td></tr>
+      <tr><td>Lv3</td><td>数値の段階だけを振り直す</td></tr>
+      <tr><td>Lv4</td><td>空いているスロットに、サブステータスを1つ足す</td></tr>
+      <tr><td>Lv5</td><td>再抽選と付与の費用が安くなる</td></tr>
+    </table></div>
+    <p>再抽選や付与には、蝕界の素材とエメラルドを使います。</p>
+  </article>
+</section>
+
+<!-- ========== 第六章 ========== -->
+<section class="chapter" id="material">
+  <p class="ch-no">第六章</p>
+  <h2>蝕界の素材</h2>
+  <p class="ch-lead">闇の土地の木や鉱石は、ときどき姿を変えている。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">⛏</span>素材の手に入れ方</h3>
+    <p>蝕界で木を切ったり鉱石を掘ったりすると、ふつうのアイテムのかわりに、ときどき<b>蝕界の素材</b>が出ます。紫の光と音が当たりの合図です。</p>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>素材</th><th>手に入れ方（蝕界の中で）</th></tr>
+      <tr><td>蝕界の原木</td><td>原木を切る（どの木でも）</td></tr>
+      <tr><td>蝕界鉄鋼</td><td>鉄鉱石を掘る</td></tr>
+      <tr><td>蝕炭</td><td>石炭鉱石を掘る</td></tr>
+      <tr><td>蝕金</td><td>金鉱石を掘る</td></tr>
+      <tr><td>蝕晶</td><td>ダイヤモンド鉱石を掘る</td></tr>
+      <tr><td>蝕核の欠片</td><td>蝕界のモンスターを倒す</td></tr>
+      <tr><td>蝕界結晶</td><td>第一章を見てね</td></tr>
+    </table></div>
+    <div class="note">蝕界の素材は、ふつうの作業台では使えません。拠点の施設や料理、行商との交換などで使います。</div>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">👝</span>蝕界ポーチ</h3>
+    <p>蝕界の素材だけをしまえるポーチです。手に持って右クリックで開きます。</p>
+    <ul>
+      <li>持っているだけで、拾った蝕界の素材が<b>自動でポーチに入る</b></li>
+      <li>入場の結晶やランタンのチャージ、施設の素材は、ポーチの中からも使える</li>
+      <li>中身は持ち主ごとに保存される（ポーチをなくしても、買い直せば同じ中身）</li>
+      <li>未鑑定品は入らない</li>
+    </ul>
+    <figure class="shot" data-file="images/shokkai/pouch.png"><img src="images/shokkai/pouch.png" alt="蝕界ポーチの画面" loading="lazy"><figcaption>蝕界ポーチ</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">🧳</span>蝕界の行商</h3>
+    <p>行商を右クリックすると、お店の画面が開きます。</p>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>品物</th><th>値段</th></tr>
+      <tr><td>蝕界結晶 ×1</td><td>蝕界鉄鋼 ×16</td></tr>
+      <tr><td>蝕界結晶 ×5</td><td>蝕界鉄鋼 ×80</td></tr>
+      <tr><td>🏮 灯のランタン</td><td>エメラルド 2000（チャージ0で届く）</td></tr>
+      <tr><td>👝 蝕界ポーチ</td><td>エメラルド 1200（1人1つ）</td></tr>
+    </table></div>
+    <figure class="shot" data-file="images/shokkai/shop.png"><img src="images/shokkai/shop.png" alt="蝕界の行商の画面" loading="lazy"><figcaption>蝕界の行商</figcaption></figure>
+  </article>
+</section>
+
+<!-- ========== 第七章 ========== -->
+<section class="chapter" id="base">
+  <p class="ch-no">第七章</p>
+  <h2>拠点と蝕界</h2>
+  <p class="ch-lead">蝕界に潜る者を支えるのは、拠点の暮らし。</p>
+  <div class="ornament" aria-hidden="true"></div>
+
+  <article class="entry">
+    <h3><span class="ic">🏗</span>新しい施設</h3>
+    <p>拠点ショップに、2つの施設が加わりました。施設のレベルは、蝕界の素材とエメラルドで上げます（オーナー・副リーダー）。</p>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>施設</th><th>できること</th></tr>
+      <tr><td>🔮 蝕の鑑定台</td><td>未鑑定品の鑑定・サブステータスの再抽選と付与（1拠点に1つ）</td></tr>
+      <tr><td>💎 結晶の苗床</td><td>蝕晶を植えると、時間をかけて蝕界結晶が育つ</td></tr>
+    </table></div>
+    <figure class="shot" data-file="images/shokkai/facility_appraise.png"><img src="images/shokkai/facility_appraise.png" alt="蝕の鑑定台の画面" loading="lazy"><figcaption>蝕の鑑定台</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">💎</span>結晶の苗床の育て方</h3>
+    <ol class="path">
+      <li><b>蝕晶を植える</b><br>苗床を右クリックして「植える」。蝕晶を1個使います。</li>
+      <li><b>世話をする</b><br>骨粉や小麦で育つ時間が短くなり、黄金の小麦をあげると、ときどき2個採れる「双子結晶」が育ちやすくなります。</li>
+      <li><b>収穫する</b><br>育つと拠点のメンバーにお知らせが届きます。右クリックで収穫！</li>
+    </ol>
+    <figure class="shot" data-file="images/shokkai/nursery.png"><img src="images/shokkai/nursery.png" alt="結晶の苗床" loading="lazy"><figcaption>結晶の苗床</figcaption></figure>
+  </article>
+
+  <article class="entry">
+    <h3><span class="ic">🍳</span>蝕界料理</h3>
+    <p>厨房で、蝕界での冒険を助ける料理が作れるようになりました。蝕界の素材と、拠点で採れる素材を組み合わせて作ります。</p>
+    <div class="scroll-x"><table class="tbl">
+      <tr><th>料理</th><th>効果（30分）</th></tr>
+      <tr><td>🔥 灯のスープ</td><td>蝕界で灯火が減りにくくなる</td></tr>
+      <tr><td>🍵 闇除けの茶</td><td>蝕界のモンスターに削られる灯火が減る</td></tr>
+      <tr><td>🥧 蝕金のパイ</td><td>蝕界で未鑑定品が出やすくなる</td></tr>
+    </table></div>
+    <div class="note rift"><b>拠点の暮らしが好きな人へ</b>：結晶や料理を作って、蝕界に潜る仲間に差し入れしてみよう。冒険と暮らしがつながります。</div>
+  </article>
+</section>
+
+<!-- ========== 巻末 ========== -->
+<section class="chapter" id="rule">
+  <p class="ch-no">巻末</p>
+  <h2>蝕界の決まりごと</h2>
+  <p class="ch-lead">闇の世界には、闇の掟がある。</p>
+  <div class="ornament" aria-hidden="true"></div>
+  <div class="scroll-x"><table class="tbl">
+    <tr><th>できないこと</th><th>くわしく</th></tr>
+    <tr><td>ゲート以外から入る</td><td>テレポートなどでは蝕界に入れない</td></tr>
+    <tr><td>ベッド・リスポーンアンカー</td><td>蝕界では眠れない</td></tr>
+    <tr><td>ネザー・エンドへのポータル</td><td>蝕界では使えない・作れない</td></tr>
+    <tr><td>未鑑定品をしまう・捨てる</td><td>チェスト・エンダーチェストに入れる、地面に捨てる、額縁に飾る ことはできない</td></tr>
+    <tr><td>キープのお守り</td><td>蝕界の中では効かない（回数も減らない）</td></tr>
+  </table></div>
+  <h4 style="font-family:var(--font-head)">冒険の流れ</h4>
+  <ol class="path">
+    <li><b>蝕界結晶を手に入れる</b><br>行商で交換するか、拠点の苗床で育てよう。</li>
+    <li><b>灯りの準備</b><br>ランタンをチャージして、料理を食べて出発。</li>
+    <li><b>蝕界を探索する</b><br>素材を集め、モンスターを倒して未鑑定品を探そう。灯火に気をつけて。</li>
+    <li><b>持ち帰って鑑定する</b><br>拠点の蝕の鑑定台で、封をほどこう。</li>
+    <li><b>装備を鍛える</b><br>★5が出たら、サブステータスを磨いて最強の一品に。</li>
+  </ol>
+</section>
+
+</main>
+</div>
+
+<footer class="colophon">
+  <p class="world">PONSWORLD</p>
+  <p>ちょこっと不思議な冒険サーバー<br>困ったときは、Discord で運営まで気軽にどうぞ。</p>
+</footer>
+
+<a class="totop" href="#top" aria-label="いちばん上へ">▲</a>
+
+<script>
+// 画像がまだない枠は、差し替え用の枠として表示する
+document.querySelectorAll('.shot img').forEach(function(img){
+  function miss(){ img.closest('.shot').classList.add('missing'); }
+  if(img.complete && img.naturalWidth===0){ miss(); }
+  img.addEventListener('error', miss);
+});
+
+// スマホの目次の開け閉め
+var log=document.getElementById('log');
+var tg=document.getElementById('logtoggle');
+tg.addEventListener('click',function(){
+  var open=log.classList.toggle('open');
+  tg.setAttribute('aria-expanded',open?'true':'false');
+});
+document.querySelectorAll('#loglist a').forEach(function(a){
+  a.addEventListener('click',function(){
+    log.classList.remove('open');
+    tg.setAttribute('aria-expanded','false');
+  });
+});
+
+// 今読んでいる章を、目次で光らせる
+var links={};
+document.querySelectorAll('#loglist a').forEach(function(a){ links[a.getAttribute('href').slice(1)]=a; });
+if('IntersectionObserver' in window){
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(e.isIntersecting){
+        Object.values(links).forEach(function(l){ l.classList.remove('on'); });
+        var l=links[e.target.id]; if(l){ l.classList.add('on'); }
+      }
+    });
+  },{rootMargin:'-30% 0px -60% 0px'});
+  document.querySelectorAll('.chapter').forEach(function(s){ io.observe(s); });
+}
+</script>
+</body>
+</html>
