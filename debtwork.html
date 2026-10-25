@@ -1,0 +1,818 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>借金返済所 | PONSWORLD</title>
+<meta name="description" content="エメラルド鉱石を順番に叩いて、少しずつエメラルドを稼ぐ PONSWORLD のミニゲーム（Web版）。">
+<meta name="theme-color" content="#1b2142">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Shippori+Mincho+B1:wght@600&family=Zen+Kaku+Gothic+New:wght@400;700&display=swap">
+<style>
+/* Layout: 洞窟の壁（3×3）を主役に、右（狭い画面では下）にマイクラ風GUIの記録パネルとチャット欄 */
+:root{
+  --bg:#101310;
+  --panel:#191e19;
+  --line:#2c352c;
+  --fg:#e7ede4;
+  --muted:#97a397;
+  --gold:#ffaa00;
+  --emerald:#3ee07a;
+  --gui:#c6c6c6;
+  --gui-hi:#ffffff;
+  --gui-lo:#555555;
+  --gui-ink:#3f3f3f;
+  --slot:#8b8b8b;
+  --chat:rgba(0,0,0,.55);
+  --f-pix:"DotGothic16","Hiragino Kaku Gothic ProN","Yu Gothic",monospace;
+  --f-body:"Zen Kaku Gothic New","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--fg)}
+body{margin:0;font-family:var(--f-body);font-size:15px;line-height:1.6}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:18px;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:20px 40px}
+header{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;min-width:0}
+.brand canvas,.brand img{width:40px;height:40px;image-rendering:pixelated}
+.brand h1{font-family:var(--f-pix);font-weight:400;font-size:28px;margin:0;color:var(--gold);
+  text-shadow:3px 3px 0 #3f2a00;letter-spacing:.04em;line-height:1.1}
+.brand small{display:block;font-family:var(--f-pix);color:var(--muted);font-size:12px;letter-spacing:.06em}
+.mcbtn{font-family:var(--f-pix);font-size:15px;color:#fff;background:#6f6f6f;border:2px solid #000;
+  box-shadow:inset 2px 2px 0 #a8a8a8,inset -2px -3px 0 #4a4a4a;padding:6px 14px;cursor:pointer;text-shadow:2px 2px 0 #3f3f3f;min-height:38px}
+.mcbtn:hover{background:#7b86c9;box-shadow:inset 2px 2px 0 #b3bdf0,inset -2px -3px 0 #4c558c}
+.mcbtn:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.mcbtn:disabled{color:#a0a0a0;background:#3a3a3a;box-shadow:none;cursor:not-allowed}
+
+.main{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.main{grid-template-columns:minmax(0,1fr)}}
+
+/* ---- stage ---- */
+.stage{position:relative;overflow:hidden;border:3px solid #000;background-color:#2a2a2f;
+  background-size:64px 64px;image-rendering:pixelated;padding:22px 12px 16px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;min-height:520px;user-select:none;-webkit-user-select:none}
+.stage::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 55%,transparent 30%,rgba(0,0,0,.55) 100%)}
+.sign{position:relative;z-index:1;background:rgba(0,0,0,.42);padding:8px 16px 9px;text-align:center;
+  font-family:var(--f-pix);font-size:15px;line-height:1.5;max-width:100%}
+.sign .t{color:var(--gold);font-size:20px}
+.wall{position:relative;z-index:1;display:grid;grid-template-columns:repeat(3,var(--bs));grid-template-rows:repeat(3,var(--bs));
+  --bs:clamp(78px,25vw,124px);box-shadow:0 0 0 3px rgba(0,0,0,.6),0 18px 40px rgba(0,0,0,.6)}
+.blk{all:unset;width:var(--bs);height:var(--bs);background-image:var(--t-stone);background-size:100% 100%;image-rendering:pixelated;
+  cursor:pointer;position:relative;transition:transform .06s;-webkit-tap-highlight-color:transparent}
+.blk.ore{background-image:var(--t-ore)}
+.blk.eb{background-image:var(--t-eb)}
+.blk::after{content:"";position:absolute;inset:0;box-shadow:inset 0 0 0 2px rgba(0,0,0,0);transition:box-shadow .05s}
+.blk:hover::after,.blk:focus-visible::after{box-shadow:inset 0 0 0 2px rgba(0,0,0,.85)}
+.blk.hit{transform:scale(.93)}
+.blk.ore,.blk.eb{z-index:1}
+.blk .crack{position:absolute;inset:0;background-image:var(--t-crack);background-size:100% 100%;opacity:0}
+.blk.hit .crack{opacity:.55}
+.hint{position:relative;z-index:1;font-family:var(--f-pix);color:#fff;text-shadow:2px 2px 0 #3f3f3f;font-size:16px;
+  animation:blink 1.2s steps(2,start) infinite;min-height:24px}
+@keyframes blink{50%{opacity:.35}}
+.actionbar{position:relative;z-index:2;font-family:var(--f-pix);font-size:17px;min-height:28px;text-align:center;
+  transition:opacity .4s;max-width:100%;overflow-wrap:anywhere}
+.titlebox{position:absolute;inset:0;z-index:3;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  pointer-events:none;opacity:0;text-align:center;padding:0 12px}
+#tt{font-family:var(--f-pix);font-size:clamp(30px,7vw,54px);line-height:1.15}
+#ts{font-family:var(--f-pix);font-size:clamp(16px,3.2vw,22px);margin-top:6px}
+#tt .b,#ts .b{font-weight:700}
+.mc span{text-shadow:2px 2px 0 rgba(0,0,0,.65)}
+#tt span{text-shadow:4px 4px 0 rgba(0,0,0,.6)}
+#fx{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:4}
+.fever .stage{border-color:#1b6f3a}
+.stage.flash{animation:flash .5s}
+@keyframes flash{0%{box-shadow:inset 0 0 0 9999px rgba(120,255,170,.35)}100%{box-shadow:inset 0 0 0 9999px rgba(120,255,170,0)}}
+
+/* ---- right column ---- */
+.side{display:flex;flex-direction:column;gap:18px;min-width:0}
+.gui{background:var(--gui);color:var(--gui-ink);border:2px solid #000;
+  box-shadow:inset 3px 3px 0 var(--gui-hi),inset -3px -3px 0 var(--gui-lo);padding:16px 18px 18px;font-family:var(--f-pix)}
+.gui h2{font-size:16px;font-weight:400;margin:0 0 10px;color:var(--gui-ink)}
+.total{display:flex;align-items:center;gap:14px}
+.slot{width:64px;height:64px;flex:none;background:var(--slot);box-shadow:inset 2px 2px 0 #373737,inset -2px -2px 0 #fff;
+  position:relative;display:grid;place-items:center}
+.slot img{width:44px;height:44px;image-rendering:pixelated}
+.slot b{position:absolute;right:3px;bottom:0;color:#fff;font-weight:400;font-size:16px;text-shadow:2px 2px 0 #3f3f3f}
+.big{font-size:40px;line-height:1;color:#1f7a3c;font-variant-numeric:tabular-nums}
+.big.bump{animation:bump .35s}
+@keyframes bump{40%{transform:scale(1.15);color:#0b9e45}}
+.unit{font-size:15px;color:var(--gui-ink)}
+.rows{display:grid;grid-template-columns:1fr auto;gap:4px 12px;margin-top:14px;font-size:15px}
+.rows dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.rows dt{color:#555}
+.field{margin-top:16px;display:flex;flex-direction:column;gap:6px}
+.field label{font-size:14px}
+.field input{font-family:var(--f-pix);font-size:16px;background:#000;color:#fff;border:2px solid #a0a0a0;padding:6px 8px;min-width:0;width:100%}
+.field input:focus-visible{outline:none;border-color:#fff}
+.btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+.note{font-size:13px;color:#555;margin:10px 0 0;font-family:var(--f-body);line-height:1.55}
+textarea#report{width:100%;margin-top:10px;font-family:var(--f-pix);font-size:13px;background:#000;color:#fff;border:2px solid #a0a0a0;padding:8px;resize:vertical;min-height:90px}
+.rows .unclaimedL{color:var(--gui-ink)}
+.rows .unclaimedV{color:#1f7a3c;font-size:18px}
+.confirmBox{margin-top:12px;background:#a9a9a9;box-shadow:inset 2px 2px 0 #7a7a7a,inset -2px -2px 0 #e0e0e0;padding:10px 12px}
+.confirmBox p{margin:0;font-size:14px;line-height:1.6}
+.again{color:#aa0000}
+.cloud{font-size:12px;margin-top:8px;color:#555;font-family:var(--f-body)}
+.chat{background:var(--chat);border:1px solid #000;padding:8px 10px;height:230px;overflow-y:auto;font-family:var(--f-pix);
+  font-size:14px;line-height:1.55;display:flex;flex-direction:column;gap:2px}
+.chat div{overflow-wrap:anywhere}
+.chatwrap h2,.rules h2,.rank h2{font-family:var(--f-pix);font-weight:400;font-size:16px;margin:0 0 8px;color:var(--fg)}
+.rules{background:var(--panel);border:1px solid var(--line);padding:14px 18px}
+.rules ul{margin:0;padding-left:1.2em;color:var(--muted);font-size:14px;display:flex;flex-direction:column;gap:3px}
+.rules b{color:var(--fg);font-weight:700}
+kbd{font-family:var(--f-pix);background:#2a302a;border:1px solid var(--line);padding:0 5px;font-size:12px;color:var(--fg)}
+.rank{background:var(--panel);border:1px solid var(--line);padding:14px 18px}
+.tbl{overflow-x:auto}
+table{border-collapse:collapse;width:100%;font-size:14px;min-width:460px}
+th,td{padding:6px 8px;border-bottom:1px solid var(--line);text-align:left;white-space:nowrap}
+th{font-family:var(--f-pix);font-weight:400;color:var(--muted);font-size:13px}
+td.n{text-align:right;font-variant-numeric:tabular-nums;font-family:var(--f-pix)}
+td.due{color:var(--emerald)}
+.me td{background:rgba(62,224,122,.07)}
+.pill{display:inline-block;font-size:12px;padding:1px 8px;border:1px solid var(--line);color:var(--muted)}
+.pill.ok{color:var(--emerald);border-color:#1f5f35}
+.small{font-size:13px;color:var(--muted);margin:8px 0 0}
+.paybtn{font-size:13px;min-height:30px;padding:3px 10px}
+.confirm{display:inline-flex;gap:6px;align-items:center}
+@media (prefers-reduced-motion:reduce){.hint{animation:none}.big.bump{animation:none}.stage.flash{animation:none}}
+
+/* ---------- サイト共通のタブ（手引き書と同じ見た目） ---------- */
+.tabs{position:sticky;top:0;z-index:20;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+  padding:10px 12px 0;background:rgba(18,23,49,.94);border-bottom:1px solid rgba(214,179,92,.4)}
+.tabs a{padding:8px 18px;font-family:"Shippori Mincho B1",serif;font-weight:600;font-size:15px;line-height:1.8;
+  color:#d9d2bd;text-decoration:none;border:1px solid rgba(214,179,92,.35);border-bottom:0;
+  border-radius:6px 6px 0 0;background:rgba(27,33,66,.7)}
+.tabs a:hover{color:#f6edd2;background:rgba(214,179,92,.12)}
+.tabs a[aria-current="page"]{background:#efe2c2;color:#2b2216;border-color:#d6b35c}
+.tabs a:focus-visible{outline:3px solid #d6b35c;outline-offset:3px}
+.tabs .new{font-family:"Cinzel","Shippori Mincho B1",serif;font-size:11px;color:#c9a2ff;margin-left:6px;letter-spacing:.08em}
+@media (max-width:900px){.tabs{position:relative}.tabs a{padding:7px 12px;font-size:14px}}
+</style>
+</head>
+<body>
+
+<nav class="tabs" aria-label="ページ">
+  <a href="index.html">📖 冒険者の手引き書</a>
+  <a href="shokkai.html">🌑 蝕界 アップデート<span class="new">NEW</span></a>
+  <a href="debtwork.html" aria-current="page">⛏ 借金返済所<span class="new">GAME</span></a>
+</nav>
+<div class="wrap" id="app">
+  <header>
+    <div class="brand">
+      <img id="logo" alt="">
+      <div><h1>借金返済所</h1><small>debtwork v1.2.1 ・ Web版</small></div>
+    </div>
+    <button class="mcbtn" id="mute" type="button" aria-pressed="false">🔊 音: ON</button>
+  </header>
+
+  <div class="main">
+    <section class="stage" id="stage" aria-label="ゲーム画面">
+      <div class="sign mc" id="sign"></div>
+      <div class="wall" id="wall" role="group" aria-label="3×3 のブロック"></div>
+      <div class="hint" id="hint">ブロックを叩いてスタート</div>
+      <div class="actionbar mc" id="ab" aria-live="polite"></div>
+      <div class="titlebox mc" id="title"><div id="tt"></div><div id="ts"></div></div>
+      <canvas id="fx"></canvas>
+    </section>
+
+    <div class="side">
+      <section class="gui" aria-label="自分の記録">
+        <h2>/debtwork ── これまでに稼いだ合計</h2>
+        <div class="total">
+          <div class="slot"><img id="emIcon" alt="エメラルド"><b id="slotN">0</b></div>
+          <div><span class="big" id="total">0</span> <span class="unit">エメラルド</span></div>
+        </div>
+        <dl class="rows">
+          <dt>フィーバー</dt><dd id="fevers">0回</dd>
+          <dt>今回のプレイで稼いだ数</dt><dd id="session">0</dd>
+          <dt>申請済み</dt><dd id="claimedV">0</dd>
+          <dt>今日の申請（上限 1000）</dt><dd id="todayV">0 / 1000</dd>
+          <dt class="unclaimedL">まだ申請していない分</dt><dd class="unclaimedV" id="unclaimedV">0</dd>
+        </dl>
+        <div class="field">
+          <label for="mcid">マイクラのID（受け取りに使います）</label>
+          <input id="mcid" maxlength="16" autocomplete="off" spellcheck="false" placeholder="例: Steve_123">
+        </div>
+        <div class="btnrow" id="claimRow">
+          <button class="mcbtn" id="claim" type="button">受け取りを申請する</button>
+          <button class="mcbtn" id="again" type="button" hidden>前回の申請を表示</button>
+        </div>
+        <div class="confirmBox" id="confirmBox" hidden>
+          <p id="confirmMsg"></p>
+          <div class="btnrow">
+            <button class="mcbtn" id="claimYes" type="button">申請する</button>
+            <button class="mcbtn" id="claimNo" type="button">やめる</button>
+          </div>
+        </div>
+        <div id="reportBox" hidden>
+          <textarea id="report" readonly aria-label="申請のテキスト"></textarea>
+          <div class="btnrow"><button class="mcbtn" id="copy" type="button">テキストをコピー</button></div>
+        </div>
+        <p class="note">申請すると、その時点の「まだ申請していない分」が申請テキストになり、申請済みに移ります。次の申請には入らないので、同じ分を二重にもらうことはありません。テキストは管理人に送ってください。</p>
+        <div class="cloud" id="cloud">記録はこの端末のブラウザに保存されます。</div>
+      </section>
+
+      <section class="chatwrap">
+        <h2>チャット</h2>
+        <div class="chat mc" id="chat" aria-live="polite"></div>
+      </section>
+    </div>
+  </div>
+
+  <section class="rank" id="rank" hidden>
+    <h2 id="rankH">返済ランキング</h2>
+    <div class="tbl"><table><thead id="rankHead"></thead><tbody id="rankBody"></tbody></table></div>
+    <p class="small" id="rankNote"></p>
+  </section>
+
+  <section class="rules">
+    <h2>遊び方</h2>
+    <ul>
+      <li>どれかのブロックを叩くと始まります。光った<b>エメラルド鉱石</b>を順番に叩きます。</li>
+      <li><b>10回連続</b>で正しく叩くと、エメラルド <b>1〜3個</b>。違うブロックを叩くと、連続が0に戻ります。</li>
+      <li>報酬をもらうたびに <b>10%</b> で<b>フィーバータイム</b>。10秒間、どこを叩いても +1 エメラルド。</li>
+      <li>受け取りの申請は <b>1日 1000 エメラルドまで</b>（日本時間の0時に切り替え）。超えた分は明日以降に申請できます。</li>
+      <li>15秒なにもしないと終わります。キーボードでも遊べます（<kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> / <kbd>4</kbd><kbd>5</kbd><kbd>6</kbd> / <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> がテンキーの並び）。</li>
+    </ul>
+  </section>
+</div>
+
+<script>
+(() => {
+"use strict";
+/* ============ 設定（debtwork.sk の options と同じ） ============ */
+const CFG = { need:10, min:1, max:3, idle:15, feverChance:10, feverSec:10 };
+const TICK = 50;
+const SAVE_KEY = "debtwork_save_v1";
+const MUTE_KEY = "debtwork_mute";
+const $ = id => document.getElementById(id);
+const wait = ticks => new Promise(r => setTimeout(r, ticks * TICK));
+const randInt = (a,b) => a + Math.floor(Math.random() * (b - a + 1));
+
+/* ============ 保存 ============ */
+let save = { name:"", earned:0, fevers:0, claimed:0, claims:0, last:null, day:null };
+const DAILY_CAP = 1000; // 1日に申請できるエメラルドの上限（日本時間の0時で切り替え）
+const todayKey = () => new Date().toLocaleDateString("sv-SE", { timeZone: "Asia/Tokyo" });
+const todayClaimed = () => (save.day && save.day.date === todayKey()) ? save.day.amount : 0;
+try { const s = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); if (s) save = Object.assign(save, s); } catch(e) {}
+function persist(){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e) {} scheduleSync(); }
+let sessionEarned = 0;
+
+/* ============ テクスチャ（16×16 のドット絵を生成） ============ */
+function rng(seed){ return () => { seed = (seed * 1664525 + 1013904223) >>> 0; return seed / 4294967296; }; }
+function makeTex(draw, size = 16){
+  const c = document.createElement("canvas"); c.width = c.height = size;
+  const g = c.getContext("2d"); draw(g, (x,y,col)=>{ g.fillStyle = col; g.fillRect(x,y,1,1); });
+  return c.toDataURL();
+}
+const STONE = ["#7f7f7f","#7a7a7a","#868686","#747474","#6d6d6d","#8f8f8f","#7f7f7f","#828282"];
+function drawStone(px, seed){
+  const r = rng(seed);
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++) px(x,y,STONE[Math.floor(r()*STONE.length)]);
+  // 少しだけ濃い斑点
+  for (let i=0;i<10;i++){ const x=Math.floor(r()*15), y=Math.floor(r()*16); px(x,y,"#666666"); px(x+1,y,"#6b6b6b"); }
+}
+const tStone = makeTex((g,px)=>drawStone(px, 11));
+const tOre = makeTex((g,px)=>{
+  drawStone(px, 11);
+  const gems = [[2,2],[10,1],[6,7],[12,9],[1,11],[8,13]];
+  const shape = [[1,0,"#41f384"],[0,1,"#17dd62"],[1,1,"#c9ffdc"],[2,1,"#17dd62"],[1,2,"#0b8a37"],[0,2,"#0e6b2e"],[2,2,"#0b8a37"]];
+  gems.forEach(([gx,gy]) => shape.forEach(([dx,dy,c]) => px(gx+dx, gy+dy, c)));
+});
+const tEb = makeTex((g,px)=>{
+  const r = rng(5);
+  const ring = ["#0f7a36","#21b552","#46e483","#2bc463","#17a347","#3fe07a","#2bc463","#46e483"];
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++){
+    const d = Math.min(x,y,15-x,15-y);
+    let c = ring[Math.min(d, ring.length-1)];
+    if (d===0) c = (x===0||y===0) ? "#7cf7ad" : "#0a5c26";
+    px(x,y,c);
+  }
+  for (let i=0;i<8;i++) px(2+Math.floor(r()*12), 2+Math.floor(r()*12), "#b8ffd2");
+});
+const tCrack = makeTex((g,px)=>{
+  const pts = [[7,3],[7,4],[8,5],[8,6],[7,7],[6,8],[5,9],[9,7],[10,8],[11,8],[8,9],[8,10],[9,11],[4,10]];
+  pts.forEach(([x,y]) => px(x,y,"rgba(0,0,0,.8)"));
+});
+const tDeep = makeTex((g,px)=>{
+  const r = rng(23), P = ["#3a3a40","#34343a","#414147","#2e2e34","#46464c","#38383e"];
+  for (let y=0;y<16;y++){ const row = Math.floor(r()*P.length); for (let x=0;x<16;x++) px(x,y, r()<.55 ? P[row] : P[Math.floor(r()*P.length)]); }
+});
+const tEmerald = makeTex((g,px)=>{
+  for (let y=0;y<16;y++) for (let x=0;x<16;x++){
+    const d = Math.abs(x-7.5) + Math.abs(y-7.5)*0.85;
+    if (d > 7.2) continue;
+    let c;
+    if (d > 6.2) c = "#0a4f22";
+    else { const shade = (x + y) / 30; c = shade < .35 ? "#5ff59a" : shade < .55 ? "#17dd62" : shade < .75 ? "#12b84f" : "#0b8a37"; }
+    px(x,y,c);
+  }
+  [[5,5],[6,4],[5,6],[9,9]].forEach(([x,y],i)=>px(x,y, i<3 ? "#e7fff0" : "#41f384"));
+});
+const root = document.documentElement.style;
+root.setProperty("--t-stone", `url(${tStone})`);
+root.setProperty("--t-ore", `url(${tOre})`);
+root.setProperty("--t-eb", `url(${tEb})`);
+root.setProperty("--t-crack", `url(${tCrack})`);
+$("stage").style.backgroundImage = `url(${tDeep})`;
+$("emIcon").src = tEmerald; $("logo").src = tEmerald;
+
+/* ============ マイクラの色コード（&a など）を表示 ============ */
+const COL = {"0":"#000000","1":"#0000AA","2":"#00AA00","3":"#00AAAA","4":"#AA0000","5":"#AA00AA","6":"#FFAA00","7":"#AAAAAA",
+  "8":"#555555","9":"#5555FF","a":"#55FF55","b":"#55FFFF","c":"#FF5555","d":"#FF55FF","e":"#FFFF55","f":"#FFFFFF"};
+function esc(s){ return s.replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c])); }
+function mc(text){
+  let color = "#FFFFFF", bold = false, out = "", buf = "";
+  const flush = () => { if (buf) out += `<span style="color:${color}"${bold?' class="b"':""}>${esc(buf)}</span>`; buf = ""; };
+  for (let i=0;i<text.length;i++){
+    const ch = text[i], nx = (text[i+1]||"").toLowerCase();
+    if (ch === "&" && (COL[nx] || nx==="l" || nx==="r")){
+      flush();
+      if (COL[nx]) { color = COL[nx]; bold = false; } else if (nx==="l") bold = true; else { color="#FFFFFF"; bold=false; }
+      i++; continue;
+    }
+    buf += ch;
+  }
+  flush(); return out;
+}
+$("sign").innerHTML =
+  `<div class="t">${mc("&6&l⛏ 借金返済所")}</div>` +
+  `<div>${mc("&fエメラルド鉱石を、順番に叩け！")}</div>` +
+  `<div>${mc("&a" + CFG.need + "回連続でエメラルド " + CFG.min + "〜" + CFG.max + "個")}</div>` +
+  `<div>${mc("&b&l💎 まれにフィーバータイム！")}</div>`;
+
+/* タイトル（send title） */
+let titleT1, titleT2;
+function title(t, s, stay = 40, fin = 10, fout = 20){
+  const box = $("title");
+  clearTimeout(titleT1); clearTimeout(titleT2);
+  $("tt").innerHTML = mc(t); $("ts").innerHTML = mc(s || "");
+  box.style.transition = `opacity ${fin*TICK}ms linear`;
+  requestAnimationFrame(()=>{ box.style.opacity = "1"; });
+  titleT1 = setTimeout(()=>{ box.style.transition = `opacity ${fout*TICK}ms linear`; box.style.opacity = "0"; }, (fin+stay)*TICK);
+}
+/* アクションバー */
+let abT;
+function actionbar(t){
+  const el = $("ab"); el.innerHTML = mc(t); el.style.opacity = "1";
+  clearTimeout(abT); abT = setTimeout(()=>{ el.style.opacity = "0"; }, 2600);
+}
+/* チャット */
+function chat(t){
+  const box = $("chat"), d = document.createElement("div");
+  d.innerHTML = mc(t); box.appendChild(d);
+  while (box.children.length > 60) box.firstChild.remove();
+  box.scrollTop = box.scrollHeight;
+}
+
+/* ============ 音（Web Audio で合成） ============ */
+let actx = null, master = null, muted = false;
+try { muted = localStorage.getItem(MUTE_KEY) === "1"; } catch(e) {}
+function audio(){
+  if (!actx){
+    const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+    actx = new AC(); master = actx.createGain(); master.gain.value = muted ? 0 : 0.55;
+    const comp = actx.createDynamicsCompressor(); master.connect(comp); comp.connect(actx.destination);
+  }
+  if (actx.state === "suspended") actx.resume();
+  return actx;
+}
+function tone(freq, {type="sine", dur=.5, vol=.3, attack=.004, delay=0, glide=null, partials=null}={}){
+  const a = audio(); if (!a) return;
+  const t0 = a.currentTime + delay;
+  const g = a.createGain(); g.gain.setValueAtTime(0, t0);
+  g.gain.linearRampToValueAtTime(vol, t0 + attack);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  g.connect(master);
+  (partials || [[1,1]]).forEach(([mul, amp]) => {
+    const o = a.createOscillator(), og = a.createGain();
+    o.type = type; o.frequency.setValueAtTime(freq*mul, t0);
+    if (glide) o.frequency.exponentialRampToValueAtTime(glide*mul, t0 + dur);
+    og.gain.value = amp; o.connect(og); og.connect(g);
+    o.start(t0); o.stop(t0 + dur + .05);
+  });
+}
+let noiseBuf = null;
+function noise({dur=.2, vol=.3, type="bandpass", freq=1000, q=1, delay=0, sweep=null}={}){
+  const a = audio(); if (!a) return;
+  if (!noiseBuf){ noiseBuf = a.createBuffer(1, a.sampleRate, a.sampleRate); const d = noiseBuf.getChannelData(0); for (let i=0;i<d.length;i++) d[i] = Math.random()*2-1; }
+  const t0 = a.currentTime + delay;
+  const s = a.createBufferSource(); s.buffer = noiseBuf;
+  const f = a.createBiquadFilter(); f.type = type; f.frequency.setValueAtTime(freq, t0); f.Q.value = q;
+  if (sweep) f.frequency.exponentialRampToValueAtTime(sweep, t0 + dur);
+  const g = a.createGain(); g.gain.setValueAtTime(vol, t0); g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  s.connect(f); f.connect(g); g.connect(master); s.start(t0); s.stop(t0 + dur + .05);
+}
+const FS4 = 369.99; // 音符ブロックの pitch 1
+const SND = {
+  "block.note_block.pling": (v,p)=>tone(FS4*p,{dur:.9,vol:.22*v,partials:[[1,1],[2,.35],[3,.12]]}),
+  "block.note_block.bell": (v,p)=>tone(FS4*4*p,{dur:1.4,vol:.16*v,partials:[[1,1],[2.76,.35],[5.4,.15]]}),
+  "block.note_block.chime": (v,p)=>tone(FS4*2*p,{dur:1.6,vol:.14*v,partials:[[1,1],[2.76,.4],[5.4,.2]]}),
+  "block.note_block.bass": (v,p)=>tone(92.5*p,{type:"triangle",dur:.55,vol:.5*v,partials:[[1,1],[2,.3]]}),
+  "block.amethyst_block.chime": (v,p)=>{ tone(1180*p,{dur:.9,vol:.09*v,partials:[[1,1],[2.4,.4],[3.9,.2]]}); tone(1180*p*1.5,{dur:.6,vol:.04*v,delay:.03}); },
+  "block.amethyst_block.hit": (v,p)=>tone(1400*p,{dur:.35,vol:.1*v,partials:[[1,1],[2.7,.3]]}),
+  "block.stone.break": (v,p)=>{ noise({dur:.16,vol:.45*v,freq:900*p,q:.8}); noise({dur:.1,vol:.35*v,type:"lowpass",freq:300}); tone(120,{dur:.1,vol:.2*v,type:"triangle"}); },
+  "entity.villager.no": (v,p)=>{ tone(210*p,{type:"sawtooth",dur:.38,vol:.07*v,glide:150*p,attack:.03,partials:[[1,1],[2,.5]]}); noise({dur:.3,vol:.05*v,freq:700,q:3}); },
+  "entity.experience_orb.pickup": (v,p)=>tone(1050*p,{dur:.16,vol:.16*v,glide:1250*p,partials:[[1,1],[2,.25]]}),
+  "entity.player.levelup": (v,p)=>{ [1,1.26,1.5,2].forEach((m,i)=>tone(523*p*m,{dur:1.1,vol:.09*v,delay:i*.035,partials:[[1,1],[2,.3]]})); },
+  "ui.toast.challenge_complete": (v,p)=>{ [1,1.26,1.5,2,2.52].forEach((m,i)=>tone(392*p*m,{type:"triangle",dur:.7+i*.15,vol:.12*v,delay:i*.11})); tone(392*p*2,{dur:1.6,vol:.1*v,delay:.6,partials:[[1,1],[1.26,.8],[1.5,.8]]}); },
+  "entity.firework_rocket.launch": (v)=>noise({dur:.7,vol:.35*v,type:"highpass",freq:500,sweep:4000}),
+  "entity.firework_rocket.twinkle": (v,p)=>{ for (let i=0;i<14;i++) noise({dur:.05,vol:.25*v,type:"highpass",freq:3000*p,delay:.55+Math.random()*.9}); },
+};
+function play(name, vol=1, pitch=1){ if (muted) return; try { SND[name] && SND[name](vol, Math.max(.5, Math.min(2, pitch))); } catch(e) {} }
+function renderMute(){ $("mute").textContent = muted ? "🔇 音: OFF" : "🔊 音: ON"; $("mute").setAttribute("aria-pressed", String(muted)); }
+$("mute").addEventListener("click", ()=>{
+  muted = !muted; try { localStorage.setItem(MUTE_KEY, muted ? "1" : "0"); } catch(e) {}
+  if (master) master.gain.value = muted ? 0 : .55; renderMute();
+});
+renderMute();
+
+/* ============ パーティクル ============ */
+const cv = $("fx"), cx = cv.getContext("2d"), stage = $("stage");
+let parts = [], dpr = 1;
+function fit(){ dpr = Math.min(2, window.devicePixelRatio || 1); const r = stage.getBoundingClientRect(); cv.width = r.width*dpr; cv.height = r.height*dpr; }
+new ResizeObserver(fit).observe(stage); fit();
+const reduce = matchMedia("(prefers-reduced-motion: reduce)").matches;
+function gauss(){ return (Math.random()+Math.random()+Math.random()-1.5)/1.5; }
+function fx(idx, kind, count){
+  const el = blocks[idx]; if (!el) return;
+  const sr = stage.getBoundingClientRect(), br = el.getBoundingClientRect();
+  const cxp = br.left - sr.left + br.width/2, cyp = br.top - sr.top + br.height/2, bs = br.width;
+  if (reduce) count = Math.ceil(count/3);
+  for (let i=0;i<count;i++){
+    const p = { x: cxp + gauss()*bs*.6, y: cyp + gauss()*bs*.6, vx:0, vy:0, g:0, life:1, age:0, size: bs/16*2, kind, grow:0 };
+    if (kind==="ok"){ p.c = ["#55ff55","#2fd02f","#a6ffa6"][i%3]; p.vy = -25 - Math.random()*15; p.life = .7 + Math.random()*.5; }
+    else if (kind==="bad"){ const s = 60+Math.floor(Math.random()*60); p.c = `rgb(${s},${s},${s})`; p.vy = -30 - Math.random()*30; p.vx = gauss()*15; p.life = .9 + Math.random()*.5; p.grow = 6; }
+    else if (kind==="spark"){ p.c = ["#f8a630","#ffd27a","#ffe9b0"][i%3]; p.vx = gauss()*10; p.vy = gauss()*10; p.life = .8 + Math.random()*.6; p.size *= .8; }
+    else if (kind==="boom"){ const a = Math.random()*Math.PI*2, sp = 120 + Math.random()*260; p.x = cxp; p.y = cyp;
+      p.vx = Math.cos(a)*sp; p.vy = Math.sin(a)*sp - 140; p.g = 380; p.c = ["#ffe84a","#a6f33c","#5bd94c","#f5b63a","#fffbcc"][i%5]; p.life = 1.1 + Math.random()*.9; }
+    else if (kind==="rod"){ p.c = "#ffffff"; p.vx = gauss()*18; p.vy = gauss()*18; p.life = 1.2 + Math.random()*.6; p.size *= .7; }
+    parts.push(p);
+  }
+}
+let lastT = performance.now();
+function loop(t){
+  const dt = Math.min(.05, (t - lastT)/1000); lastT = t;
+  cx.setTransform(dpr,0,0,dpr,0,0); cx.clearRect(0,0,cv.width,cv.height);
+  parts = parts.filter(p => (p.age += dt) < p.life);
+  for (const p of parts){
+    p.vy += p.g*dt; if (p.kind==="boom"){ p.vx *= .985; p.vy *= .985; }
+    p.x += p.vx*dt; p.y += p.vy*dt;
+    const k = 1 - p.age/p.life;
+    let s = p.size + p.grow*(p.age/p.life);
+    if (p.kind==="rod") s *= k;
+    cx.globalAlpha = p.kind==="spark" ? (Math.sin(p.age*30) > -.3 ? k : k*.3) : Math.min(1, k*1.4);
+    cx.fillStyle = p.c;
+    if (p.kind==="ok"){ const u = s/2; cx.fillRect(p.x-u/2, p.y-s, u, s*2); cx.fillRect(p.x-s, p.y-u/2, s*2, u); }
+    else cx.fillRect(p.x - s/2, p.y - s/2, s, s);
+  }
+  cx.globalAlpha = 1;
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+
+/* ============ ブロック ============ */
+const wall = $("wall"), blocks = [null];
+for (let i=1;i<=9;i++){
+  const b = document.createElement("button");
+  b.className = "blk"; b.type = "button"; b.dataset.i = i; b.setAttribute("aria-label", `ブロック ${i}`);
+  b.innerHTML = '<span class="crack"></span>';
+  b.addEventListener("pointerdown", e => { e.preventDefault(); hit(i); });
+  b.addEventListener("keydown", e => { if (e.key==="Enter" || e.key===" "){ e.preventDefault(); hit(i); } });
+  b.addEventListener("contextmenu", e => e.preventDefault());
+  wall.appendChild(b); blocks.push(b);
+}
+function setMat(i, mat){ const b = blocks[i]; b.classList.toggle("ore", mat==="ore"); b.classList.toggle("eb", mat==="eb"); }
+function show(i){ setMat(i, "ore"); }
+function hide(i){ setMat(i, "stone"); }
+function hideAll(){ for (let i=1;i<=9;i++) hide(i); }
+const IDXS = [1,2,3,4,5,6,7,8,9];
+document.addEventListener("keydown", e => {
+  if (e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA")) return;
+  const map = {"7":1,"8":2,"9":3,"4":4,"5":5,"6":6,"1":7,"2":8,"3":9};
+  if (map[e.key] && !e.repeat){ e.preventDefault(); hit(map[e.key]); }
+});
+
+/* ============ ゲーム本体（debtwork.sk と同じ流れ） ============ */
+const S = { on:false, cur:0, combo:0, last:0, fever:false, fgot:0, busy:false, run:0, cd:false };
+const now = () => Date.now()/1000;
+
+function bar(cb){ let t = "&a"; for (let k=1;k<=CFG.need;k++){ if (k===cb+1) t += "&8"; t += "■"; } return t; }
+
+function next(){
+  if (S.cur > 0) hide(S.cur);
+  const c = IDXS.filter(i => i !== S.cur);
+  const nx = c[Math.floor(Math.random()*c.length)];
+  S.cur = nx; show(nx); fx(nx, "spark", 6);
+}
+
+async function start(){
+  S.on = true; const r = ++S.run;
+  S.combo = 0; S.cur = 0; S.last = now();
+  $("hint").hidden = true;
+  title("&6&l⛏ 借金返済所", "&fエメラルド鉱石を、順番に叩け！", 40);
+  chat(`&6[借金返済所] &fエメラルド鉱石を ${CFG.need} 回連続で叩くと、エメラルド ${CFG.min}〜${CFG.max} 個！ &7（違うブロックを叩くと、最初から・まれにフィーバー！）`);
+  if (!save.name) chat("&e[借金返済所] 右の欄にマイクラのIDを入れておくと、受け取りのときに使えます。");
+  play("block.note_block.bell", 1, 1);
+  S.busy = true;
+  let pitch = .7;
+  for (const i of IDXS){
+    show(i); fx(i, "spark", 5);
+    play("block.amethyst_block.chime", .8, pitch); pitch += .12;
+    await wait(2);
+    if (r !== S.run) return;
+    hide(i);
+  }
+  S.busy = false;
+  if (!S.on || r !== S.run) return;
+  play("block.note_block.chime", 1, 2);
+  next();
+}
+
+function end(msg){
+  if (!S.on) return;
+  hideAll(); S.run++;
+  Object.assign(S, { on:false, cur:0, combo:0, fever:false, fgot:0, busy:false });
+  document.body.classList.remove("fever");
+  $("hint").hidden = false;
+  if (msg){
+    chat(`&7[借金返済所] おつかれさまでした。 &7（これまでに稼いだ合計: &a${save.earned}エメラルド&7）`);
+    play("block.note_block.bass", .6, 1);
+  }
+}
+
+function addEarned(n){
+  save.earned += n; sessionEarned += n; persist(); renderStats(true);
+}
+
+async function reward(idx){
+  const r = S.run;
+  const em = randInt(CFG.min, CFG.max);
+  addEarned(em);
+  S.combo = 0;
+  title(`&a&l💰 +${em}`, "&fエメラルドを掘り当てた！", 25, 0, 6);
+  actionbar(`&a⛏ ${CFG.need}回連続！ &f+${em} エメラルド &7（合計 ${save.earned}）`);
+  fx(idx, "boom", 25); fx(idx, "ok", 20);
+  play("entity.player.levelup", .7, 1.6);
+  for (let k=1;k<=em;k++){ play("entity.experience_orb.pickup", 1, 1 + k*.15); await wait(3); }
+  if (r !== S.run || !S.on) return;
+  if (Math.random()*100 < CFG.feverChance) fever(); else next();
+}
+
+async function fever(){
+  if (!S.on) return;
+  const r = S.run;
+  if (S.cur > 0) hide(S.cur);
+  S.cur = 0; S.fever = true; S.fgot = 0;
+  save.fevers += 1; persist(); renderStats();
+  document.body.classList.add("fever");
+  stage.classList.remove("flash"); void stage.offsetWidth; stage.classList.add("flash");
+  title("&a&l💎 FEVER TIME!!", `&e${CFG.feverSec}秒間、どこを叩いても +1 エメラルド！`, 40, 0, 8);
+  play("ui.toast.challenge_complete", 1, 1.2);
+  play("entity.firework_rocket.launch", 1, 1);
+  play("entity.firework_rocket.twinkle", 1, 1.2);
+  chat("&a[借金返済所] 💎 &eあなた &aがフィーバータイムに突入！");
+  const steps = CFG.feverSec * 5;
+  for (let k=1;k<=steps;k++){
+    if (r !== S.run || !S.fever) return;
+    const mat = k % 2 === 0 ? "ore" : "eb";
+    for (const i of IDXS){ setMat(i, mat); if (k % 5 === 0) fx(i, "rod", 2); }
+    const left = Math.ceil((steps - k)/5);
+    actionbar(`&a&l💎 FEVER &e&lあと ${left} 秒 &7｜ &a+${S.fgot} エメラルド`);
+    S.last = now();
+    await wait(4);
+  }
+  if (r !== S.run || !S.fever) return;
+  S.fever = false; document.body.classList.remove("fever");
+  const fg = S.fgot; S.fgot = 0;
+  hideAll();
+  title("&a&lフィーバー終了！", `&f合計 &a&l+${fg} &fエメラルド`, 40, 0, 8);
+  chat(`&a[借金返済所] 💎 フィーバータイムで &e${fg} エメラルド &aを手に入れた！`);
+  play("entity.player.levelup", 1, 1.2);
+  await wait(20);
+  if (r !== S.run || !S.on) return;
+  S.combo = 0; S.last = now();
+  next();
+}
+
+function feverHit(idx){
+  addEarned(1);
+  S.fgot += 1;
+  const fg = S.fgot;
+  play("entity.experience_orb.pickup", 1, Math.min(2, .8 + (fg % 12)*.1));
+  play("block.amethyst_block.hit", .8, 1.6);
+  fx(idx, "ok", 8); fx(idx, "spark", 4);
+  title("", `&a&l+1 💎 &7（${fg}）`, 8, 0, 3);
+}
+
+function click(idx){
+  if (!S.on){ start(); return; }
+  if (S.busy) return;
+  S.last = now();
+  if (S.fever){ feverHit(idx); return; }
+  const cur = S.cur;
+  if (cur === 0) return;
+  if (idx === cur){
+    S.combo += 1;
+    const cb = S.combo;
+    play("block.note_block.pling", 1, Math.min(2, .6 + cb*.14));
+    play("block.stone.break", .7, 1.2);
+    fx(idx, "ok", 10);
+    if (cb >= CFG.need){ S.cur = 0; hide(idx); reward(idx); return; }
+    if (cb === 5) title("", "&eあと5回！", 12, 0, 4);
+    actionbar(`&6⛏ ${bar(cb)} &f${cb}/${CFG.need}`);
+    next();
+  } else {
+    const lost = S.combo; S.combo = 0;
+    play("entity.villager.no", .8, 1);
+    play("block.note_block.bass", 1, .6);
+    fx(idx, "bad", 12);
+    actionbar(lost > 0 ? `&c✖ ちがうブロック！ &7（${lost}回の連続が、0に戻りました）` : "&c✖ ちがうブロック！");
+    hide(idx); show(cur);
+  }
+}
+
+function hit(i){
+  audio();
+  const b = blocks[i];
+  b.classList.add("hit"); setTimeout(()=>b.classList.remove("hit"), 90);
+  if (S.cd) return;            // 3 tick のクールダウン
+  S.cd = true; setTimeout(()=>{ S.cd = false; }, 3*TICK);
+  click(i);
+}
+
+// なにもしないと終わる
+setInterval(()=>{
+  if (S.on && !S.fever && !S.busy && now() - S.last >= CFG.idle) end(true);
+}, 1000);
+
+/* ============ 記録パネル ============ */
+function renderStats(bump){
+  $("total").textContent = save.earned.toLocaleString("ja-JP");
+  $("slotN").textContent = save.earned > 999 ? "999+" : String(save.earned);
+  $("fevers").textContent = `${save.fevers}回`;
+  $("session").textContent = String(sessionEarned);
+  if (bump){ const t = $("total"); t.classList.remove("bump"); void t.offsetWidth; t.classList.add("bump"); }
+  $("claimedV").textContent = `${save.claimed}（${save.claims}回）`;
+  $("unclaimedV").textContent = `${unclaimed()} エメラルド`;
+  $("todayV").textContent = `${todayClaimed()} / ${DAILY_CAP}`;
+  renderClaimUI();
+}
+const unclaimed = () => Math.max(0, save.earned - save.claimed);
+const claimable = () => Math.min(unclaimed(), Math.max(0, DAILY_CAP - todayClaimed()));
+function stamp(d = new Date()){
+  const z = n => String(n).padStart(2,"0");
+  return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`;
+}
+/* 受け取りの申請: 申請するたびに、まだ申請していない分だけを申請テキストにする */
+function claimText(c, again){
+  return [
+    again ? "【借金返済所 受け取り申請】※再表示（同じ申請です）" : "【借金返済所 受け取り申請】",
+    `申請番号: #${c.no}`,
+    `マイクラID: ${c.name}`,
+    `今回受け取る数: ${c.amount} エメラルド`,
+    `申請の累計: ${c.before} → ${c.before + c.amount}`,
+    `この日の申請: ${c.dayTotal != null ? c.dayTotal : c.amount} / ${DAILY_CAP}`,
+    `申請日時: ${c.at}`,
+  ].join("\n");
+}
+function renderClaimUI(){
+  const n = claimable();
+  const claim = $("claim");
+  claim.disabled = !save.name || n <= 0;
+  claim.textContent = !save.name ? "IDを入れると申請できます"
+    : n > 0 ? `${n}エメラルドの受け取りを申請する`
+    : (unclaimed() > 0 ? "今日の申請は上限（1000）に達しました" : "申請できる分はありません");
+  $("again").hidden = !save.last;
+}
+function showReport(text){
+  $("report").value = text; $("reportBox").hidden = false;
+}
+$("claim").addEventListener("click", ()=>{
+  const n = claimable(); if (!save.name || n <= 0) return;
+  const rest = unclaimed() - n;
+  $("confirmMsg").innerHTML = `<b>${esc(save.name)}</b> として <b>${n} エメラルド</b> を申請します。<br>申請した分は申請済みに移り、次の申請には入りません。` +
+    (rest > 0 ? `<br>1日の上限が ${DAILY_CAP} 個のため、残りの ${rest} 個は明日以降に申請できます。` : "");
+  $("confirmBox").hidden = false; $("claimRow").hidden = true;
+});
+$("claimNo").addEventListener("click", ()=>{ $("confirmBox").hidden = true; $("claimRow").hidden = false; });
+$("claimYes").addEventListener("click", ()=>{
+  const n = claimable();
+  $("confirmBox").hidden = true; $("claimRow").hidden = false;
+  if (!save.name || n <= 0) return;
+  const dayTotal = todayClaimed() + n;
+  const c = { no: save.claims + 1, name: save.name, amount: n, before: save.claimed, at: stamp(), dayTotal };
+  save.claims = c.no; save.claimed += n; save.last = c; save.day = { date: todayKey(), amount: dayTotal };
+  persist(); renderStats();
+  showReport(claimText(c, false));
+  chat(`&a[借金返済所] 申請 #${c.no}: &e${n} エメラルド &aを申請しました。テキストを管理人に送ってください。`);
+  play("entity.player.levelup", .6, 1.4);
+  copyReport();
+});
+$("again").addEventListener("click", ()=>{ if (save.last) showReport(claimText(save.last, true)); });
+async function copyReport(){
+  const btn = $("copy"), txt = $("report").value;
+  try { await navigator.clipboard.writeText(txt); btn.textContent = "コピーしました"; }
+  catch(e){ $("report").focus(); $("report").select(); btn.textContent = "上の文字を選んでコピーしてください"; }
+  setTimeout(()=>{ btn.textContent = "テキストをコピー"; }, 2200);
+}
+$("copy").addEventListener("click", copyReport);
+const mcid = $("mcid");
+mcid.value = save.name;
+mcid.addEventListener("input", ()=>{
+  save.name = mcid.value.replace(/\s+/g, "").slice(0,16);
+  if (mcid.value !== save.name) mcid.value = save.name;
+  persist(); renderClaimUI();
+});
+
+/* ============ クラウド保存（共有の記録・管理人の支払い管理） ============ */
+let db = null, user = null, uid = null, myRef = null, remote = null, remoteLoaded = false, isOwner = false;
+let syncT = null, syncing = false, syncAgain = false, cloudOk = null;
+let players = [];
+function scheduleSync(){ if (!myRef || !remoteLoaded) return; clearTimeout(syncT); syncT = setTimeout(doSync, 1500); }
+async function doSync(){
+  if (!myRef || !remoteLoaded) return;
+  if (syncing){ syncAgain = true; return; }
+  syncing = true;
+  const body = { name: save.name || "", earned: save.earned, fevers: save.fevers, claimed: save.claimed, claims: save.claims,
+    last: save.last || null, day: save.day || null, updatedAt: new Date().toISOString() };
+  try {
+    if (remote) await myRef.update(body);
+    else { await myRef.set(body); remote = body; }
+    cloudOk = true;
+  } catch(e){ cloudOk = false; }
+  syncing = false; renderCloud();
+  if (syncAgain){ syncAgain = false; doSync(); }
+}
+function renderCloud(){
+  const el = $("cloud");
+  if (cloudOk === true) el.textContent = "記録はこの端末と、共有の記録（管理人が見られる場所）の両方に保存されています。";
+  else if (cloudOk === false) el.textContent = "記録はこの端末のブラウザに保存されます。受け取りには、上の申請テキストを送ってください。";
+}
+function renderRank(){
+  const sec = $("rank");
+  const list = players.filter(p => p.earned > 0 || p.id === uid);
+  if (!list.length && !isOwner){ sec.hidden = true; return; }
+  sec.hidden = false;
+  $("rankH").textContent = "返済ランキング";
+  $("rankHead").innerHTML = `<tr><th>#</th><th>マイクラID</th><th>稼いだ合計</th><th>フィーバー</th><th>申請</th><th>申請の累計</th><th>最後の申請</th></tr>`;
+  const body = $("rankBody"); body.innerHTML = "";
+  list.forEach((p, k) => {
+    const tr = document.createElement("tr"); if (p.id === uid) tr.className = "me";
+    const last = p.last && p.last.no ? `#${p.last.no}（${p.last.amount}個・${p.last.at}）` : "―";
+    const cells = [
+      [String(k+1), "n"], [p.name || "（ID未入力）", ""], [String(p.earned||0), "n"], [`${p.fevers||0}回`, "n"],
+      [`${p.claims||0}回`, "n"], [String(p.claimed||0), "n due"], [last, ""]
+    ];
+    cells.forEach(([v, c]) => { const td = document.createElement("td"); td.textContent = v; if (c) td.className = c; tr.appendChild(td); });
+    body.appendChild(tr);
+  });
+  $("rankNote").textContent = isOwner
+    ? "申請のテキストが届いた分だけ渡せば大丈夫です。同じ申請番号がもう一度届いたら、それは渡し済みです。"
+    : "共有の記録に保存できた人だけが表示されます。";
+}
+async function initCloud(){
+  try {
+    if (!window.claude || !window.claude.use) return;
+    const [u, d] = await Promise.all([window.claude.use("user"), window.claude.use("db")]);
+    if (!u || !d){ cloudOk = false; renderCloud(); return; }
+    user = u; db = d;
+    isOwner = await u.isOwner();
+    uid = await u.id();
+    db.collection("players").orderBy("earned", "desc").limit(200).onSnapshot(snap => {
+      players = snap.docs.map(s => Object.assign({ id: s.id }, s.data()));
+      renderRank();
+    }, () => {});
+    if (uid){
+      myRef = db.collection("players").doc(uid);
+      myRef.onSnapshot(s => {
+        remote = s.exists ? s.data() : null;
+        if (remote){
+          let changed = false;
+          if ((remote.earned||0) > save.earned){ save.earned = remote.earned; changed = true; }
+          if ((remote.fevers||0) > save.fevers){ save.fevers = remote.fevers; changed = true; }
+          if ((remote.claims||0) > save.claims){ save.claims = remote.claims; save.claimed = remote.claimed||0; save.last = remote.last||null; save.day = remote.day||save.day; changed = true; }
+          if (!save.name && remote.name){ save.name = remote.name; mcid.value = save.name; changed = true; }
+          if (changed){ try { localStorage.setItem(SAVE_KEY, JSON.stringify(save)); } catch(e) {} }
+        }
+        const first = !remoteLoaded; remoteLoaded = true;
+        renderStats();
+        if (first && (save.earned > 0 || save.name) && (!remote || remote.earned !== save.earned || remote.fevers !== save.fevers || remote.name !== save.name || (remote.claims||0) !== save.claims)) doSync();
+      }, () => { cloudOk = false; renderCloud(); });
+    } else { cloudOk = false; renderCloud(); }
+  } catch(e){ cloudOk = false; renderCloud(); }
+}
+
+/* ============ はじめ ============ */
+renderStats();
+chat("&6[借金返済所] &fようこそ！ どれかのブロックを叩くと始まります。");
+if (save.earned > 0) chat(`&7[借金返済所] これまでに稼いだ合計: &a${save.earned}エメラルド &7／ &fフィーバー: &a${save.fevers}回`);
+initCloud();
+})();
+</script>
+</body>
+</html>
