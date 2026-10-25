@@ -110,7 +110,29 @@ header{display:flex;align-items:center;justify-content:space-between;gap:12px;fl
 .field input:focus-visible{outline:none;border-color:#fff}
 .btnrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
 .note{font-size:13px;color:#555;margin:10px 0 0;font-family:var(--f-body);line-height:1.55}
-textarea#report{width:100%;margin-top:10px;font-family:var(--f-pix);font-size:13px;background:#000;color:#fff;border:2px solid #a0a0a0;padding:8px;resize:vertical;min-height:90px}
+/* 申請画面（スクショ用） */
+.shotLayer{position:fixed;inset:0;z-index:50;background:rgba(5,8,5,.82);display:grid;place-items:center;overflow-y:auto;
+  padding:max(16px,env(safe-area-inset-top,0px)) max(16px,env(safe-area-inset-right,0px)) max(16px,env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.shot{width:min(440px,100%);background:var(--gui);color:var(--gui-ink);border:3px solid #000;
+  box-shadow:inset 4px 4px 0 var(--gui-hi),inset -4px -4px 0 var(--gui-lo),0 20px 60px rgba(0,0,0,.6);
+  padding:20px 22px 22px;font-family:var(--f-pix);display:flex;flex-direction:column;gap:14px;position:relative}
+.shotHead{display:flex;align-items:center;gap:12px}
+.shotHead img{width:44px;height:44px;image-rendering:pixelated}
+.shotTitle{font-size:18px;line-height:1.3}
+.shotNo{font-size:15px;color:#555}
+.shotAgain{margin-left:auto;border:3px solid #b02020;color:#b02020;padding:2px 10px;font-size:16px;transform:rotate(8deg)}
+.shotName{background:#8b8b8b;box-shadow:inset 2px 2px 0 #373737,inset -2px -2px 0 #fff;padding:10px 14px;display:flex;flex-direction:column}
+.shotName span,.shotAmount span{font-size:13px;color:#e6e6e6}
+.shotName b{font-weight:400;font-size:26px;color:#fff;text-shadow:2px 2px 0 #3f3f3f;overflow-wrap:anywhere}
+.shotAmount{background:#1d4d2c;box-shadow:inset 2px 2px 0 #0d2a17,inset -2px -2px 0 #4fae6c;padding:10px 14px;display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px}
+.shotAmount span{width:100%}
+.shotAmount b{font-weight:400;font-size:52px;line-height:1;color:#55FF55;text-shadow:3px 3px 0 #153f15;font-variant-numeric:tabular-nums}
+.shotAmount i{font-style:normal;color:#fff;font-size:18px}
+.shotRows{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0;font-size:15px}
+.shotRows dt{color:#555}
+.shotRows dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+.shotFoot{margin:0;font-size:13px;color:#555;text-align:center}
+#shotClose{align-self:center}
 .rows .unclaimedL{color:var(--gui-ink)}
 .rows .unclaimedV{color:#1f7a3c;font-size:18px}
 .confirmBox{margin-top:12px;background:#a9a9a9;box-shadow:inset 2px 2px 0 #7a7a7a,inset -2px -2px 0 #e0e0e0;padding:10px 12px}
@@ -208,11 +230,7 @@ td.due{color:var(--emerald)}
             <button class="mcbtn" id="claimNo" type="button">やめる</button>
           </div>
         </div>
-        <div id="reportBox" hidden>
-          <textarea id="report" readonly aria-label="申請のテキスト"></textarea>
-          <div class="btnrow"><button class="mcbtn" id="copy" type="button">テキストをコピー</button></div>
-        </div>
-        <p class="note">申請すると、その時点の「まだ申請していない分」が申請テキストになり、申請済みに移ります。次の申請には入らないので、同じ分を二重にもらうことはありません。テキストは管理人に送ってください。</p>
+        <p class="note">申請すると、申請画面が出ます。その画面をスクリーンショットして、管理人に送ってください。申請した分は申請済みに移り、次の申請には入りません。</p>
         <div class="cloud" id="cloud">記録はこの端末のブラウザに保存されます。</div>
       </section>
 
@@ -239,6 +257,29 @@ td.due{color:var(--emerald)}
       <li>15秒なにもしないと終わります。キーボードでも遊べます（<kbd>7</kbd><kbd>8</kbd><kbd>9</kbd> / <kbd>4</kbd><kbd>5</kbd><kbd>6</kbd> / <kbd>1</kbd><kbd>2</kbd><kbd>3</kbd> がテンキーの並び）。</li>
     </ul>
   </section>
+</div>
+
+<div class="shotLayer" id="shotLayer" hidden>
+  <div class="shot" role="dialog" aria-modal="true" aria-labelledby="shotTitle">
+    <div class="shotHead">
+      <img id="shotIcon" alt="">
+      <div>
+        <div class="shotTitle" id="shotTitle">借金返済所 受け取り申請</div>
+        <div class="shotNo" id="shotNo">申請 #1</div>
+      </div>
+      <div class="shotAgain" id="shotAgain" hidden>再表示</div>
+    </div>
+    <div class="shotName"><span>マイクラID</span><b id="shotName"></b></div>
+    <div class="shotAmount"><span>今回受け取る数</span><b id="shotAmount">0</b><i>エメラルド</i></div>
+    <dl class="shotRows">
+      <dt>申請の累計</dt><dd id="shotTotal"></dd>
+      <dt>この日の申請</dt><dd id="shotDay"></dd>
+      <dt>稼いだ合計</dt><dd id="shotEarned"></dd>
+      <dt>申請日時</dt><dd id="shotAt"></dd>
+    </dl>
+    <p class="shotFoot">この画面をスクリーンショットして、管理人に送ってください。</p>
+    <button class="mcbtn" id="shotClose" type="button">閉じる</button>
+  </div>
 </div>
 
 <script>
@@ -493,6 +534,7 @@ function hideAll(){ for (let i=1;i<=9;i++) hide(i); }
 const IDXS = [1,2,3,4,5,6,7,8,9];
 document.addEventListener("keydown", e => {
   if (e.target && (e.target.tagName==="INPUT" || e.target.tagName==="TEXTAREA")) return;
+  if (!$("shotLayer").hidden) return;
   const map = {"7":1,"8":2,"9":3,"4":4,"5":5,"6":6,"1":7,"2":8,"3":9};
   if (map[e.key] && !e.repeat){ e.preventDefault(); hit(map[e.key]); }
 });
@@ -668,18 +710,7 @@ function stamp(d = new Date()){
   const z = n => String(n).padStart(2,"0");
   return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`;
 }
-/* 受け取りの申請: 申請するたびに、まだ申請していない分だけを申請テキストにする */
-function claimText(c, again){
-  return [
-    again ? "【借金返済所 受け取り申請】※再表示（同じ申請です）" : "【借金返済所 受け取り申請】",
-    `申請番号: #${c.no}`,
-    `マイクラID: ${c.name}`,
-    `今回受け取る数: ${c.amount} エメラルド`,
-    `申請の累計: ${c.before} → ${c.before + c.amount}`,
-    `この日の申請: ${c.dayTotal != null ? c.dayTotal : c.amount} / ${DAILY_CAP}`,
-    `申請日時: ${c.at}`,
-  ].join("\n");
-}
+/* 受け取りの申請: 申請するたびに、まだ申請していない分だけを申請画面（スクショ用）に出す */
 function renderClaimUI(){
   const n = claimable();
   const claim = $("claim");
@@ -689,9 +720,27 @@ function renderClaimUI(){
     : (unclaimed() > 0 ? "今日の申請は上限（1000）に達しました" : "申請できる分はありません");
   $("again").hidden = !save.last;
 }
-function showReport(text){
-  $("report").value = text; $("reportBox").hidden = false;
+let shotOpener = null;
+function showShot(c, again){
+  $("shotNo").textContent = `申請 #${c.no}`;
+  $("shotName").textContent = c.name;
+  $("shotAmount").textContent = String(c.amount);
+  $("shotTotal").textContent = `${c.before} → ${c.before + c.amount}`;
+  $("shotDay").textContent = `${c.dayTotal != null ? c.dayTotal : c.amount} / ${DAILY_CAP}`;
+  $("shotEarned").textContent = `${save.earned} エメラルド`;
+  $("shotAt").textContent = c.at;
+  $("shotAgain").hidden = !again;
+  shotOpener = document.activeElement;
+  $("shotLayer").hidden = false;
+  $("shotClose").focus();
 }
+function closeShot(){
+  $("shotLayer").hidden = true;
+  if (shotOpener && shotOpener.focus) shotOpener.focus();
+}
+$("shotIcon").src = tEmerald;
+$("shotClose").addEventListener("click", closeShot);
+document.addEventListener("keydown", e => { if (e.key === "Escape" && !$("shotLayer").hidden) closeShot(); }, true);
 $("claim").addEventListener("click", ()=>{
   const n = claimable(); if (!save.name || n <= 0) return;
   const rest = unclaimed() - n;
@@ -708,19 +757,11 @@ $("claimYes").addEventListener("click", ()=>{
   const c = { no: save.claims + 1, name: save.name, amount: n, before: save.claimed, at: stamp(), dayTotal };
   save.claims = c.no; save.claimed += n; save.last = c; save.day = { date: todayKey(), amount: dayTotal };
   persist(); renderStats();
-  showReport(claimText(c, false));
-  chat(`&a[借金返済所] 申請 #${c.no}: &e${n} エメラルド &aを申請しました。テキストを管理人に送ってください。`);
+  chat(`&a[借金返済所] 申請 #${c.no}: &e${n} エメラルド &aを申請しました。申請画面をスクショして、管理人に送ってください。`);
   play("entity.player.levelup", .6, 1.4);
-  copyReport();
+  showShot(c, false);
 });
-$("again").addEventListener("click", ()=>{ if (save.last) showReport(claimText(save.last, true)); });
-async function copyReport(){
-  const btn = $("copy"), txt = $("report").value;
-  try { await navigator.clipboard.writeText(txt); btn.textContent = "コピーしました"; }
-  catch(e){ $("report").focus(); $("report").select(); btn.textContent = "上の文字を選んでコピーしてください"; }
-  setTimeout(()=>{ btn.textContent = "テキストをコピー"; }, 2200);
-}
-$("copy").addEventListener("click", copyReport);
+$("again").addEventListener("click", ()=>{ if (save.last) showShot(save.last, true); });
 const mcid = $("mcid");
 mcid.value = save.name;
 mcid.addEventListener("input", ()=>{
@@ -751,7 +792,7 @@ async function doSync(){
 function renderCloud(){
   const el = $("cloud");
   if (cloudOk === true) el.textContent = "記録はこの端末と、共有の記録（管理人が見られる場所）の両方に保存されています。";
-  else if (cloudOk === false) el.textContent = "記録はこの端末のブラウザに保存されます。受け取りには、上の申請テキストを送ってください。";
+  else if (cloudOk === false) el.textContent = "記録はこの端末のブラウザに保存されます。受け取りには、申請画面のスクショを送ってください。";
 }
 function renderRank(){
   const sec = $("rank");
@@ -772,7 +813,7 @@ function renderRank(){
     body.appendChild(tr);
   });
   $("rankNote").textContent = isOwner
-    ? "申請のテキストが届いた分だけ渡せば大丈夫です。同じ申請番号がもう一度届いたら、それは渡し済みです。"
+    ? "申請画面のスクショが届いた分だけ渡せば大丈夫です。同じ申請番号がもう一度届いたら、それは渡し済みです。"
     : "共有の記録に保存できた人だけが表示されます。";
 }
 async function initCloud(){
